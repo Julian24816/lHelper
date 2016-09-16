@@ -1,4 +1,4 @@
-# __main__.py - lHelper project: python application for helping me learn Latin
+# tui.py - tui module of lHelper: provide a text based UI for lHelper
 #
 # Copyright (C) 2016 Julian Mueller
 #
@@ -15,15 +15,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import argparse
-
-parser = argparse.ArgumentParser()
-parser.add_argument("-t", "--tui", action="store_const", const="tui", default="gui", dest="ui",
-                    help="Run the program with a TextUI instead of a GUI.")
-ui_choice = parser.parse_args().ui
-if ui_choice == "tui":
-    import tui
-    tui.main()
-elif ui_choice == "gui":
-    import main
-    main.main()
+print("""lHelper Copyright (C) 2016 Julian Mueller""")
