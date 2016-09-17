@@ -170,6 +170,7 @@ class UsedCard(Card):
     """
     Contains a Card that is used by a User.
     """
+    MAX_SHELF = 7
 
     def __init__(self, card_id: int, shelf: int, next_questioning: str, translations: List[Translation]):
         Card.__init__(self, translations, card_id=card_id)
@@ -191,17 +192,3 @@ class UsedCard(Card):
     def __str__(self):
         return "{}\n shelf: {}, next questioning: {}".format(
             Card.__str__(self), self.shelf, self.next_questioning)
-
-    def correct(self):
-        """
-        Increments the cards shelf.
-        """
-        self.shelf = self.shelf + 1 if self.shelf < 7 else self.shelf
-        self.next_questioning = strftime('%Y-%m-%d', localtime(time() + 86400 * (2 ** self.shelf - 1)))
-
-    def wrong(self):
-        """
-        Sets the cards self to 0.
-        """
-        self.shelf = 0
-        self.next_questioning = strftime('%Y-%m-%d')

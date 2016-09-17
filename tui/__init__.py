@@ -22,7 +22,7 @@ Start the mainloop by calling main.
 
 from tui.menu import Command, MenuOptionsRegistry, mainloop
 from tui.questioning import question_all
-from data import card_manager
+from data import card_manager, UsedCard
 
 
 @MenuOptionsRegistry
@@ -83,8 +83,8 @@ class Question(Command):
             shelf = int(shelf)
         except ValueError:
             raise TypeError
-        if shelf not in range(8):
-            print("max_shelf must lay between 0 and 7.")
+        if shelf not in range(UsedCard.MAX_SHELF+1):
+            print("max_shelf must lay between 0 and {}.".format(UsedCard.MAX_SHELF))
             return
 
         question_all(card_manager.get_due_cards(max_shelf=shelf))

@@ -23,7 +23,7 @@ import sqlite3
 from singleton import Singleton
 from data.databaseConstants import *
 from data.classes import *
-from typing import List
+from typing import Dict
 from time import strftime
 
 
@@ -201,20 +201,21 @@ class UserDatabaseManager(DatabaseOpenHelper):
         db.commit()
         db.close()
 
-    def get_due_cards(self, max_shelf: int) -> List[UsedCard]:
+    def get_due_cards(self, max_shelf: int) -> Dict[int, int]:
         """
         Fetches all cards from the database, that are due today ore earlier.
         :return: a list of UsedCards
         """
         db = self.get_connection()
         cur = db.cursor()
-        cur.execute("SELECT " + CARD_ID + " FROM " + TABLE_USED_CARD +
-                    " WHERE " + USED_CARD_NEXT_QUESTIONING + "<=" + strftime('%Y-%m-%d') +
-                    " AND " + USED_CARD_SHELF + "<=" + str(max_shelf))
+        today = strftime('%Y-%m-%d')
+        cur.execute("SELECT " + CARD_ID + ", " + USED_CARD_SHELF + " FROM " + TABLE_USED_CARD +
+                    " WHERE " + USED_CARD_NEXT_QUESTIONING + "<= ?" +
+                    " AND " + USED_CARD_SHELF + "<= ?", (today, max_shelf))
 
-        cards = []
-        for (card_id,) in cur:
-            cards.append(self.load_card(card_id))
+        cards = {}
+        for (card_id, shelf) in cur:
+            cards[card_id] = shelf
 
         db.close()
         return cards
@@ -243,20 +244,24 @@ class UserDatabaseManager(DatabaseOpenHelper):
 
         db = self.get_connection()
         cur = db.cursor()
-        cur.execute("INSERT INTO " + TABLE_USED_CARD + " VALUES (" + str(card_id) + ", " + str(card.get_shelf()) + ", "
-                    + card.get_next_questioning() + ")")
+        cur.execute("INSERT INTO " + TABLE_USED_CARD + "(" + ", ".join((CARD_ID, USED_CARD_SHELF,
+                                                                        USED_CARD_NEXT_QUESTIONING))
+                    + ") VALUES (?,?,?)", (card_id, card.get_shelf(), card.get_next_questioning()))
         db.commit()
         db.close()
 
-    def update_db(self, card_id: int, next_questioning: str):
+    def update_db(self, card_id: int, shelf: int, next_questioning: str):
         """
         Update the database with the new values.
         :param card_id: the card to be updated
+        :param shelf: the new shelf
         :param next_questioning: the new date
         """
         db = self.get_connection()
         cur = db.cursor()
-        cur.execute("UPDATE " + TABLE_USED_CARD + " SET " + USED_CARD_NEXT_QUESTIONING + "=? WHERE "
-                    + CARD_ID + "=?", (next_questioning, card_id))
+        cur.execute("UPDATE " + TABLE_USED_CARD
+                    + " SET " + USED_CARD_NEXT_QUESTIONING + "=?"
+                    + ", " + USED_CARD_SHELF + "=?"
+                    + " WHERE " + CARD_ID + "=?", (next_questioning, shelf, card_id))
         db.commit()
         db.close()

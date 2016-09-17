@@ -21,7 +21,7 @@ Call question_all(<List[data.Card]>) to question the user over these vocabs.
 """
 
 from typing import List
-from data import UsedCard, user_database_manager
+from data import UsedCard, card_manager
 from random import choice
 
 
@@ -54,14 +54,13 @@ def question_all(cards: List[UsedCard]):
         card = choice(cards)
         if question(card):
             print("Correct +1")
-            card.correct()
+            card_manager.correct(card)
             cards.remove(card)
         else:
-            card.wrong()
-
-        user_database_manager.update_db(card.get_id(), card.get_next_questioning())
+            card_manager.wrong(card)
 
         print('New shelf:', card.get_shelf())
+        print('Next questioning:', card.get_next_questioning())
         print(len(cards), "cards left.")
 
     print("Done ^^")
