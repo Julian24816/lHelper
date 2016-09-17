@@ -171,19 +171,12 @@ class UsedCard(Card):
     Contains a Card that is used by a User.
     """
 
-    def __init__(self, card_id, user_id, shelf, next_questioning, *translations):
-        Card.__init__(self, *translations, card_id=card_id)
-        self.userId = user_id
+    def __init__(self, card_id: int, shelf: int, next_questioning: str, translations: List[Translation]):
+        Card.__init__(self, translations, card_id=card_id)
         self.shelf = shelf
         self.next_questioning = next_questioning
 
-    def get_user_id(self):
-        """
-        :return: the Cards UserID
-        """
-        return self.userId
-
-    def get_fach(self):
+    def get_shelf(self):
         """
         :return: return the shelf the card is on
         """
@@ -196,8 +189,8 @@ class UsedCard(Card):
         return self.next_questioning
 
     def __str__(self):
-        return "{}\nuser: {}, shelf: {}, next questioning: {}".format(
-            Card.__str__(self), self.userId, self.shelf, self.next_questioning)
+        return "{}\n shelf: {}, next questioning: {}".format(
+            Card.__str__(self), self.shelf, self.next_questioning)
 
     def correct(self):
         """

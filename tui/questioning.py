@@ -43,9 +43,9 @@ def question_all(cards: List[UsedCard]):
     """
     counts = []
     for card in cards:
-        if card.get_fach() > len(counts) - 1:
-            counts += [0 for _ in range(card.get_fach() - len(counts) + 1)]
-        counts[card.get_fach()] += 1
+        if card.get_shelf() > len(counts) - 1:
+            counts += [0 for _ in range(card.get_shelf() - len(counts) + 1)]
+        counts[card.get_shelf()] += 1
     print_shelf_counts(counts)
 
     while len(cards) > 0:
