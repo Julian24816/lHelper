@@ -23,6 +23,7 @@ Instantiate CardManager to get access to the functionality.
 from singleton import Singleton
 from typing import List
 from data.classes import UsedCard
+from data.databaseManager import UserDatabaseManager
 
 
 @Singleton
@@ -30,6 +31,12 @@ class CardManager:
     """
     Manages the loading and saving of vocabulary cards.
     """
+    def __init__(self, user_database_manager: UserDatabaseManager):
+        self.user_database_manager = user_database_manager
 
-    def get_due_cards(self) -> List[UsedCard]:
-        pass
+    def get_due_cards(self, max_shelf) -> List[UsedCard]:
+        """
+        Loads all due cards from the database.
+        :return: a list of UsedCards
+        """
+        return self.user_database_manager.get_due_cards(max_shelf)

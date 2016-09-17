@@ -23,6 +23,8 @@ import sqlite3
 from singleton import Singleton
 from data.databaseConstants import *
 from data.classes import Card, UsedCard
+from typing import List
+from time import strftime
 
 
 class DatabaseOpenHelper:
@@ -101,9 +103,10 @@ class UserDatabaseManager(DatabaseOpenHelper):
     Responsible for all database interactions concerning user data.
     """
 
-    def __init__(self, user_name: str):
+    def __init__(self, user_name: str, dbm: DatabaseManager):
         super().__init__(user_name+".sqlite3")
         self.user_name = user_name
+        self.dbm = dbm
 
     def create_tables(self):
         """
@@ -114,3 +117,39 @@ class UserDatabaseManager(DatabaseOpenHelper):
         cur.execute(CREATE_TABLE_USED_CARD)
         db.commit()
         db.close()
+
+    def get_due_cards(self, max_shelf: int) -> List[UsedCard]:
+        """
+        Fetches all cards from the database, that are due today ore earlier.
+        :return: a list of UsedCards
+        """
+        db = self.get_connection()
+        cur = db.cursor()
+        cur.execute("SELECT " + CARD_ID + " FROM " + TABLE_USED_CARD +
+                    " WHERE " + USED_CARD_NEXT_QUESTIONING + "<=" + strftime('%Y-%m-%d') +
+                    " AND " + USED_CARD_SHELF + "<=" + str(max_shelf))
+
+        cards = []
+        for (cardId,) in self.cursor.fetchall():
+            cards.append(self.load_card(cardId))
+
+        db.close()
+        return cards
+
+    def load_card(self, card_id: int) -> UsedCard:
+        """
+        Loads a Card from the user's database and the general database.
+        :param card_id: the card's id
+        :return: a UsedCard object
+        """
+        db = self.get_connection()
+        cur = db.cursor()
+        cur.execute("SELECT " + USED_CARD_SHELF + ", " + USED_CARD_NEXT_QUESTIONING +
+                    " FROM " + TABLE_USED_CARD +
+                    " WHERE " + CARD_ID + "=" + str(card_id))
+
+        shelf, next_questioning = self.cursor.fetchone()
+
+        card = self.dbm.getCard(card_id)
+
+        return UsedCard(card_id, shelf, next_questioning, card.get_translations())
