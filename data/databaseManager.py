@@ -22,7 +22,7 @@ Responsible for all database interactions.
 import sqlite3
 from singleton import Singleton
 from data.databaseConstants import *
-from data.classes import Card, UsedCard
+from data.classes import *
 from typing import List
 from time import strftime
 
@@ -115,7 +115,8 @@ class DatabaseManager(DatabaseOpenHelper):
                     )
         translations = []
         for l_root, l_annotation, l_context, g_root, g_annotation, g_context in cur.fetchall():
-            print(l_root, l_annotation, l_context, g_root, g_annotation, g_context)
+            translations.append(Translation(Usage(Word(l_root, l_annotation, "latin"), l_context),
+                                            Usage(Word(g_root, g_annotation, "german"), g_context)))
 
         db.close()
         return Card(translations, card_id)
@@ -212,8 +213,8 @@ class UserDatabaseManager(DatabaseOpenHelper):
                     " AND " + USED_CARD_SHELF + "<=" + str(max_shelf))
 
         cards = []
-        for (cardId,) in self.cursor.fetchall():
-            cards.append(self.load_card(cardId))
+        for (card_id,) in cur:
+            cards.append(self.load_card(card_id))
 
         db.close()
         return cards
@@ -230,9 +231,9 @@ class UserDatabaseManager(DatabaseOpenHelper):
                     " FROM " + TABLE_USED_CARD +
                     " WHERE " + CARD_ID + "=" + str(card_id))
 
-        shelf, next_questioning = self.cursor.fetchone()
+        shelf, next_questioning = cur.fetchone()
 
-        card = self.dbm.getCard(card_id)
+        card = self.dbm.load_card(card_id)
 
         return UsedCard(card_id, shelf, next_questioning, card.get_translations())
 
