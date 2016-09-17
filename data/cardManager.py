@@ -56,7 +56,7 @@ class CardManager:
         # weighed list of shelves to choose from
         shelf_choices = []
         for i in shelves:
-            shelf_choices += [i]*(i-1)**2
+            shelf_choices += [i]*(i-2)*2
 
         while len(card_ids) > self.CARD_PORTION and len(shelf_choices) > 0:
 
