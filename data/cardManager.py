@@ -21,6 +21,8 @@ Instantiate CardManager to get access to the functionality.
 """
 
 from singleton import Singleton
+from typing import List
+from data.classes import UsedCard
 
 
 @Singleton
@@ -28,3 +30,6 @@ class CardManager:
     """
     Manages the loading and saving of vocabulary cards.
     """
+
+    def get_due_cards(self) -> List[UsedCard]:
+        pass
