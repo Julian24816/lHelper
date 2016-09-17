@@ -16,7 +16,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides the @Singleton annotation which makes classes singletons.
+Provides the @Singleton decorator which makes classes singletons.
 """
 
 
@@ -26,7 +26,8 @@ class Singleton:
     Use as an Annotation before your class.
     """
 
-    def __init__(self, cls):
+    def __init__(self, cls, *args):
+        if args: print(cls, args)
         self.cls = cls
         self.instance = None
 

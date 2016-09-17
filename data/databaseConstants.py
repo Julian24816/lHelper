@@ -22,34 +22,33 @@ Provides constants for the Databases.
 DB_VERSION = 1
 
 TABLE_WORD = "word"
-WORD_ID = "id"
+WORD_ID = "word_id"
 WORD_ROOT_FORMS = "root_forms"
 WORD_ANNOTATIONS = "annotations"
 WORD_LANGUAGE = "language"
 
-CREATE_TABLE_WORD = "CREATE TABLE IF NOT EXISTS" + TABLE_WORD + "(" + \
+CREATE_TABLE_WORD = "CREATE TABLE IF NOT EXISTS " + TABLE_WORD + "(" + \
                     WORD_ID + " INTEGER PRIMARY KEY, " + \
                     WORD_ROOT_FORMS + " TEXT UNIQUE, " + \
                     WORD_ANNOTATIONS + " TEXT, " + \
                     WORD_LANGUAGE + " TEXT);"
 
 TABLE_USAGE = "usage"
-USAGE_ID = "id"
-USAGE_WORD_ID = "word_id"
+USAGE_ID = "usage_id"
 USAGE_CONTEXT = "context"
 
-CREATE_TABLE_USAGE = "CREATE TABLE IF NOT EXISTS" + TABLE_USAGE + "(" + \
+CREATE_TABLE_USAGE = "CREATE TABLE IF NOT EXISTS " + TABLE_USAGE + "(" + \
                      USAGE_ID + " INTEGER PRIMARY KEY, " + \
-                     USAGE_WORD_ID + " INTEGER, " + \
+                     WORD_ID + " INTEGER, " + \
                      USAGE_CONTEXT + " TEXT, " + \
-                     "UNIQUE (" + USAGE_WORD_ID + "," + USAGE_CONTEXT + "));"
+                     "UNIQUE (" + WORD_ID + "," + USAGE_CONTEXT + "));"
 
 TABLE_TRANSLATION = "translation"
-TRANSLATION_ID = "id"
+TRANSLATION_ID = "translation_id"
 TRANSLATION_LATIN_USAGE_ID = "latin_usage_id"
 TRANSLATION_GERMAN_USAGE_ID = "german_usage_id"
 
-CREATE_TABLE_TRANSLATION = "CREATE TABLE IF NOT EXISTS" + TABLE_TRANSLATION + "(" + \
+CREATE_TABLE_TRANSLATION = "CREATE TABLE IF NOT EXISTS " + TABLE_TRANSLATION + "(" + \
                            TRANSLATION_ID + " INTEGER PRIMARY KEY, " + \
                            TRANSLATION_LATIN_USAGE_ID + " INTEGER, " + \
                            TRANSLATION_GERMAN_USAGE_ID + " INTEGER, " + \
@@ -57,29 +56,18 @@ CREATE_TABLE_TRANSLATION = "CREATE TABLE IF NOT EXISTS" + TABLE_TRANSLATION + "(
 
 TABLE_CARD = "card"
 CARD_ID = "card_id"
-CARD_TRANSLATION_ID = "translation_id"
 
-CREATE_TABLE_CARD = "CREATE TABLE IF NOT EXISTS" + TABLE_CARD + "(" + \
+CREATE_TABLE_CARD = "CREATE TABLE IF NOT EXISTS " + TABLE_CARD + "(" + \
                     CARD_ID + " INTEGER, " + \
-                    CARD_TRANSLATION_ID + " INTEGER, " + \
-                    "UNIQUE (" + CARD_ID + "," + CARD_TRANSLATION_ID + "));"
+                    TRANSLATION_ID + " INTEGER, " + \
+                    "UNIQUE (" + CARD_ID + "," + TRANSLATION_ID + "));"
 
-TABLE_USER = "user"
-USER_ID = "id"
-
-CREATE_TABLE_USER = "CREATE TABLE IF NOT EXISTS" + TABLE_USER + "(" + \
-                    USER_ID + " INTEGER PRIMARY KEY);"
 
 TABLE_USED_CARD = "used_card"
-USED_CARD_ID = "card_id"
-USED_CARD_USER_ID = "user_id"
 USED_CARD_SHELF = "shelf"
 USED_CARD_NEXT_QUESTIONING = "next_questioning"
 
-CREATE_TABLE_USED_CARD = "CREATE TABLE IF NOT EXISTS" + TABLE_USED_CARD + "(" + \
-                         USED_CARD_ID + " INTEGER PRIMARY KEY, " + \
-                         USED_CARD_USER_ID + " INTEGER, " + \
+CREATE_TABLE_USED_CARD = "CREATE TABLE IF NOT EXISTS " + TABLE_USED_CARD + "(" + \
+                         CARD_ID + " INTEGER PRIMARY KEY, " + \
                          USED_CARD_SHELF + " INTEGER DEFAULT 0, " + \
-                         USED_CARD_NEXT_QUESTIONING + " DATE DEFAULT CURRENT_DATE, " + \
-                         "UNIQUE (" + USED_CARD_ID + "," + USED_CARD_USER_ID + "));"
-
+                         USED_CARD_NEXT_QUESTIONING + " DATE DEFAULT CURRENT_DATE);"
