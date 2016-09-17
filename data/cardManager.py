@@ -16,9 +16,15 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides data to other modules
+Manages the loading and saving of vocabulary cards.
+Instantiate CardManager to get access to the functionality.
 """
 
-from data.cardManager import CardManager
+from singleton import Singleton
 
-card_manager = CardManager()
+
+@Singleton
+class CardManager:
+    """
+    Manages the loading and saving of vocabulary cards.
+    """

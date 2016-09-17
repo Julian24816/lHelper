@@ -16,9 +16,21 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides data to other modules
+Provides the @Singleton annotation which makes classes singletons.
 """
 
-from data.cardManager import CardManager
 
-card_manager = CardManager()
+class Singleton:
+    """
+    Makes a class a singleton.
+    Use as an Annotation before your class.
+    """
+
+    def __init__(self, cls):
+        self.cls = cls
+        self.instance = None
+
+    def __call__(self, *args, **kwargs):
+        if self.instance is None:
+            self.instance = self.cls(*args, **kwargs)
+        return self.instance
