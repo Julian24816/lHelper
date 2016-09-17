@@ -145,7 +145,7 @@ class DatabaseManager(DatabaseOpenHelper):
         try:
             cursor.execute("INSERT INTO " + TABLE_TRANSLATION + "("
                            + ",".join((TRANSLATION_ID, TRANSLATION_LATIN_USAGE_ID, TRANSLATION_GERMAN_USAGE_ID))
-                           + ") VALUES (?,?,?)", (self.translation_id+1, latin_usage_id, german_usage_id))
+                           + ") VALUES (?,?,?)", (self.translation_id + 1, latin_usage_id, german_usage_id))
             self.translation_id += 1
             return self.translation_id
         except sqlite3.IntegrityError:
@@ -159,7 +159,7 @@ class DatabaseManager(DatabaseOpenHelper):
         try:
             cursor.execute("INSERT INTO " + TABLE_USAGE + "("
                            + ", ".join((USAGE_ID, WORD_ID, USAGE_CONTEXT))
-                           + ") VALUES (?,?,?)", (self.usage_id+1, word_id, usage.context))
+                           + ") VALUES (?,?,?)", (self.usage_id + 1, word_id, usage.context))
             self.usage_id += 1
             return self.usage_id
         except sqlite3.IntegrityError:
@@ -171,7 +171,7 @@ class DatabaseManager(DatabaseOpenHelper):
         try:
             cursor.execute("INSERT INTO " + TABLE_WORD + "("
                            + ", ".join((WORD_ID, WORD_ROOT_FORMS, WORD_ANNOTATIONS, WORD_LANGUAGE))
-                           + ") VALUES (?,?,?,?)", (self.word_id+1, word.root_forms, word.annotations,
+                           + ") VALUES (?,?,?,?)", (self.word_id + 1, word.root_forms, word.annotations,
                                                     word.language))
             self.word_id += 1
             return self.word_id
@@ -245,5 +245,18 @@ class UserDatabaseManager(DatabaseOpenHelper):
         cur = db.cursor()
         cur.execute("INSERT INTO " + TABLE_USED_CARD + " VALUES (" + str(card_id) + ", " + str(card.get_shelf()) + ", "
                     + card.get_next_questioning() + ")")
+        db.commit()
+        db.close()
+
+    def update_db(self, card_id: int, next_questioning: str):
+        """
+        Update the database with the new values.
+        :param card_id: the card to be updated
+        :param next_questioning: the new date
+        """
+        db = self.get_connection()
+        cur = db.cursor()
+        cur.execute("UPDATE " + TABLE_USED_CARD + " SET " + USED_CARD_NEXT_QUESTIONING + "=? WHERE "
+                    + CARD_ID + "=?", (next_questioning, card_id))
         db.commit()
         db.close()
