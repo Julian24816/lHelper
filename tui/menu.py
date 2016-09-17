@@ -84,7 +84,7 @@ class MenuOptionsRegistry:
             try:
                 cls.__registry[command](*args)
             except TypeError:
-                print(command.usage_notice())
+                print(cls.__registry[command].usage_notice())
         else:
             raise KeyError("command not registered")
 
@@ -119,25 +119,25 @@ class Help(Command):
     usage = "help [command]"
     description = "get help (on command)"
 
-    def __init__(self, *args):
-        if len(args) == 0:
+    def __init__(self, command: str=None):
+        if command is None:
             commands = []
             max_usage_len = 0
-            for command in MenuOptionsRegistry.get_options():
-                command = MenuOptionsRegistry.get(command)
-                commands.append((command.usage, command.description))
-                if len(command.usage) > max_usage_len:
-                    max_usage_len = len(command.usage)
+            for option in MenuOptionsRegistry.get_options():
+                option = MenuOptionsRegistry.get(option)
+                commands.append((option.usage, option.description))
+                if len(option.usage) > max_usage_len:
+                    max_usage_len = len(option.usage)
 
             print("The following commands are available:\nUse 'help command' for more in-depth help.\n")
             for item in commands:
                 print(item[0].ljust(max_usage_len), item[1])
 
-        elif len(args) == 1:
-            if MenuOptionsRegistry.has_option(args[0]):
-                print(MenuOptionsRegistry.get(args[0]).get_help())
         else:
-            print(self.usage_notice())
+            if MenuOptionsRegistry.has_option(command):
+                print(MenuOptionsRegistry.get(command).get_help())
+            else:
+                print("Command {} unknown".format(command))
 
 
 @MenuOptionsRegistry
