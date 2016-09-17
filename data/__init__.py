@@ -16,9 +16,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides data to other modules
+Provides data to other modules.
 """
 
 from data.cardManager import CardManager
+from data.classes import UsedCard
 
 card_manager = CardManager()

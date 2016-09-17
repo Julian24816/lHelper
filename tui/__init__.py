@@ -16,10 +16,13 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-tui module of lHelper: provides a text based UI for lHelper
+Provides a text based UI for lHelper.
+Start the mainloop by calling main.
 """
 
 from tui.menu import Command, MenuOptionsRegistry, mainloop
+from tui.questioning import question_all
+from data import card_manager
 
 
 @MenuOptionsRegistry
@@ -68,12 +71,12 @@ class License(Command):
 
 
 @MenuOptionsRegistry
-class Abfragen(Command):
+class Question(Command):
     """
-    The 'abfragen' command.
+    The 'question' command.
     """
-    usage = "abfragen [max_shelf]"
-    description = "starts the 'abfragen' cycle"
+    usage = "question [max_shelf]"
+    description = "starts the questioning cycle"
 
     def __init__(self, shelf=5):
         try:
@@ -84,15 +87,15 @@ class Abfragen(Command):
             print("max_shelf must lay between 0 and 7.")
             return
 
-        print("abfragen", shelf)
+        question_all(card_manager.get_due_cards(max_shelf=shelf))
 
     @classmethod
     def get_help(cls):
         """
-        Returns a help string for the 'abfragen' command.
+        Returns a help string for the 'question' command.
         :return: the help string
         """
-        return "{}\n{}\n\n{}".format(cls.usage_notice(), cls.description, "max_shelf : the max shelf to be included")
+        return "{}\n{}\n\n{}".format(cls.usage_notice(), cls.description, "max_shelf : the max shelf id to be included")
 
 
 @MenuOptionsRegistry
