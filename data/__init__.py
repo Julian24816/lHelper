@@ -16,18 +16,5 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-lHelper project: python application for helping me learn Latin
+Provides data to other modules
 """
-
-import argparse
-
-parser = argparse.ArgumentParser()
-parser.add_argument("-t", "--tui", action="store_const", const="tui", default="gui", dest="ui",
-                    help="Run the program with a TextUI instead of a GUI.")
-ui_choice = parser.parse_args().ui
-if ui_choice == "tui":
-    import tui
-    tui.main()
-elif ui_choice == "gui":
-    import main
-    main.main()

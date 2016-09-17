@@ -1,4 +1,4 @@
-# main.py - main module of lHelper: provide a graphical UI to lHelper
+# coding=utf-8
 #
 # Copyright (C) 2016 Julian Mueller
 #
@@ -15,6 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Provides a graphical UI to lHelper.
+Call :method:'main' to initialize.
+"""
+
 
 def main():
+    """
+    The GUIs main method.
+    """
     print("GUI not yet implemented.")
