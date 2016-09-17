@@ -31,6 +31,7 @@ class DatabaseOpenHelper:
     """
     Responsible for opening the database.
     """
+
     def __init__(self, db_name: str):
         self.db_name = db_name
         self.create_tables()
@@ -57,6 +58,29 @@ class DatabaseManager(DatabaseOpenHelper):
 
     def __init__(self, db_name: str):
         super().__init__(db_name)
+        self.card_id, self.translation_id, self.usage_id, self.word_id = self.load_ids()
+
+    def load_ids(self):
+        """
+        loads the max used ids from the database
+        :return: card_id, translation_id, usage_id, word_id
+        """
+        db = self.get_connection()
+        cur = db.cursor()
+        card_id = cur.execute("SELECT MAX(" + CARD_ID + ") FROM " + TABLE_CARD).fetchone()[0]
+        translation_id = cur.execute("SELECT MAX(" + TRANSLATION_ID + ") FROM " + TABLE_TRANSLATION).fetchone()[0]
+        usage_id = cur.execute("SELECT MAX(" + USAGE_ID + ") FROM " + TABLE_USAGE).fetchone()[0]
+        word_id = cur.execute("SELECT MAX(" + WORD_ID + ") FROM " + TABLE_WORD).fetchone()[0]
+        db.close()
+        if card_id is None:
+            card_id = 0
+        if translation_id is None:
+            translation_id = 0
+        if usage_id is None:
+            usage_id = 0
+        if word_id is None:
+            word_id = 0
+        return card_id, translation_id, usage_id, word_id
 
     def create_tables(self):
         """
@@ -96,6 +120,64 @@ class DatabaseManager(DatabaseOpenHelper):
         db.close()
         return Card(translations, card_id)
 
+    def add_card(self, card: Card) -> int:
+        """bla"""
+        self.card_id += 1
+
+        db = self.get_connection()
+        cur = db.cursor()
+
+        for translation in card.get_translations():
+            translation_id = self.add_translation_if_not_exists(translation, cur)
+            cur.execute("INSERT INTO " + TABLE_CARD + "("
+                        + ",".join((TRANSLATION_ID, CARD_ID))
+                        + " ) VALUES (" + ",".join((str(translation_id), str(self.card_id)))
+                        + ")")
+
+        db.commit()
+        db.close()
+        return self.card_id
+
+    def add_translation_if_not_exists(self, translation, cursor):
+        latin_usage_id = self.add_usage_if_not_exists(translation.latinUsage, cursor)
+        german_usage_id = self.add_usage_if_not_exists(translation.germanUsage, cursor)
+        try:
+            cursor.execute("INSERT INTO " + TABLE_TRANSLATION + "("
+                           + ",".join((TRANSLATION_ID, TRANSLATION_LATIN_USAGE_ID, TRANSLATION_GERMAN_USAGE_ID))
+                           + ") VALUES (?,?,?)", (self.translation_id+1, latin_usage_id, german_usage_id))
+            self.translation_id += 1
+            return self.translation_id
+        except sqlite3.IntegrityError:
+            return cursor.execute("SELECT " + TRANSLATION_ID + " FROM " + TABLE_TRANSLATION
+                                  + " WHERE " + TRANSLATION_LATIN_USAGE_ID + "= ? AND "
+                                  + TRANSLATION_GERMAN_USAGE_ID + "= ?",
+                                  (latin_usage_id, german_usage_id)).fetchone()[0]
+
+    def add_usage_if_not_exists(self, usage, cursor):
+        word_id = self.add_word_if_not_exists(usage.word, cursor)
+        try:
+            cursor.execute("INSERT INTO " + TABLE_USAGE + "("
+                           + ", ".join((USAGE_ID, WORD_ID, USAGE_CONTEXT))
+                           + ") VALUES (?,?,?)", (self.usage_id+1, word_id, usage.context))
+            self.usage_id += 1
+            return self.usage_id
+        except sqlite3.IntegrityError:
+            return cursor.execute("SELECT " + USAGE_ID + " FROM " + TABLE_USAGE
+                                  + " WHERE " + WORD_ID + "= ? AND " + USAGE_CONTEXT + "= ?",
+                                  (word_id, usage.context)).fetchone()[0]
+
+    def add_word_if_not_exists(self, word, cursor):
+        try:
+            cursor.execute("INSERT INTO " + TABLE_WORD + "("
+                           + ", ".join((WORD_ID, WORD_ROOT_FORMS, WORD_ANNOTATIONS, WORD_LANGUAGE))
+                           + ") VALUES (?,?,?,?)", (self.word_id+1, word.root_forms, word.annotations,
+                                                    word.language))
+            self.word_id += 1
+            return self.word_id
+        except sqlite3.IntegrityError:
+            return cursor.execute("SELECT " + WORD_ID + " FROM " + TABLE_WORD
+                                  + " WHERE " + WORD_ROOT_FORMS + "= ?", (word.root_forms,)).fetchone()[0]
+
 
 @Singleton
 class UserDatabaseManager(DatabaseOpenHelper):
@@ -104,7 +186,7 @@ class UserDatabaseManager(DatabaseOpenHelper):
     """
 
     def __init__(self, user_name: str, dbm: DatabaseManager):
-        super().__init__(user_name+".sqlite3")
+        super().__init__(user_name + ".sqlite3")
         self.user_name = user_name
         self.dbm = dbm
 
@@ -153,3 +235,14 @@ class UserDatabaseManager(DatabaseOpenHelper):
         card = self.dbm.getCard(card_id)
 
         return UsedCard(card_id, shelf, next_questioning, card.get_translations())
+
+    def add_card(self, card: UsedCard):
+        """bla"""
+        card_id = self.dbm.add_card(card)
+
+        db = self.get_connection()
+        cur = db.cursor()
+        cur.execute("INSERT INTO " + TABLE_USED_CARD + " VALUES (" + str(card_id) + ", " + str(card.get_shelf()) + ", "
+                    + card.get_next_questioning() + ")")
+        db.commit()
+        db.close()
