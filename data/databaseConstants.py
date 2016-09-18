@@ -60,6 +60,22 @@ CREATE_TABLE_CARD = "CREATE TABLE IF NOT EXISTS " + TABLE_CARD + "(" + \
                     TRANSLATION_ID + " INTEGER, " + \
                     "UNIQUE (" + CARD_ID + "," + TRANSLATION_ID + "));"
 
+TABLE_GROUP = "group"
+GROUP_ID = "group_id"
+GROUP_NAME = "name"
+GROUP_PARENT = "parent"
+
+CREATE_TABLE_GROUP = "CREATE TABLE IF NOT EXISTS " + TABLE_GROUP + "(" + \
+                     GROUP_ID + " INTEGER PRIMARY KEY, " + \
+                     GROUP_NAME + " TEXT UNIQUE, " + \
+                     GROUP_PARENT + " INTEGER DEFAULT NULL);"
+
+TABLE_CARD_GROUP = "card_group"  # card - group map
+
+CREATE_TABLE_CARD_GROUP = "CREATE TABLE IF NOT EXISTS " + TABLE_CARD_GROUP + "(" + \
+                          GROUP_ID + " INTEGER, " + \
+                          CARD_ID + " INTEGER, " + \
+                          "UNIQUE (" + GROUP_ID + "," + CARD_ID + "));"
 
 TABLE_USED_CARD = "used_card"
 USED_CARD_SHELF = "shelf"
