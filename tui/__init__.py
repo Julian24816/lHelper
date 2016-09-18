@@ -22,6 +22,7 @@ Start the mainloop by calling main.
 
 from tui.menu import Command, MenuOptionsRegistry, mainloop
 from tui.questioning import question_all
+from tui.walk import assign_group_all
 from data import card_manager, UsedCard
 
 
@@ -103,7 +104,19 @@ class WalkCards(Command):
     """
     The 'walk' command.
     """
-    usage = "walk"
+    usage = "walk all assign_group"
+    description = "walk all cards and assign them to groups upon user input"
+
+    def __init__(self, group, action):
+        if not group.startswith("all") or action != "assign_group":  # todo implement alternatives
+            raise TypeError
+        if len(group) > 3:
+            if group[3] == ">":
+                assign_group_all(group[4:])
+
+        # todo refactor command options
+        else:
+            assign_group_all()
 
 
 @MenuOptionsRegistry

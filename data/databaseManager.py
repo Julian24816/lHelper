@@ -130,7 +130,7 @@ class DatabaseManager(DatabaseOpenHelper):
                            )
 
             translations = []
-            for l_root, l_annotation, l_context, g_root, g_annotation, g_context in iter(cursor):
+            for l_root, l_annotation, l_context, g_root, g_annotation, g_context in cursor.fetchall():
                 translations.append(Translation(Usage(Word(l_root, l_annotation, "latin"), l_context),
                                                 Usage(Word(g_root, g_annotation, "german"), g_context)))
 
@@ -284,12 +284,15 @@ class DatabaseManager(DatabaseOpenHelper):
         cur = db.cursor()
         cur.execute("SELECT " + GROUP_NAME + " FROM " + TABLE_GROUP
                     + " WHERE " + GROUP_ID + "=?", (group_id,))
-        group = CardGroup(cur.fetchone()[0], [])
+        group_name = cur.fetchone()
+        if group_name is None:
+            raise ValueError("group_id does not exist.")
+        group = CardGroup(group_name[0], [])
         cur.execute("SELECT " + CARD_ID +
                     " FROM " + TABLE_CARD_GROUP +
                     " WHERE " + GROUP_ID + " IN (" + ",".join(map(str, self.get_subgroup_ids(group_id, cur))) + ")")
-        for cardId in cur:
-            group.add_card(self.load_card(cardId, cur))
+        for card_id, in cur.fetchall():
+            group.add_card(self.load_card(card_id, cur))
         db.close()
         return group
 
@@ -305,7 +308,7 @@ class DatabaseManager(DatabaseOpenHelper):
         for group in ids:
             cursor.execute("SELECT " + GROUP_ID + " FROM " + TABLE_GROUP
                            + " WHERE " + GROUP_PARENT + "=?", (group,))
-            for el in cursor:
+            for el, in cursor:
                 if el not in ids:
                     ids.append(el)
         return ids
@@ -368,23 +371,27 @@ class UserDatabaseManager(DatabaseOpenHelper):
         db.close()
         return cards
 
-    def load_card(self, card_id: int) -> UsedCard:
+    def load_card(self, card_id: int, cursor: sqlite3.Cursor = None) -> UsedCard:
         """
         Loads a Card from the user's database and the general database.
         :param card_id: the card's id
+        :param cursor: the cursor to be used
         :return: a UsedCard object
         """
-        db = self.get_connection()
-        cur = db.cursor()
-        cur.execute("SELECT " + USED_CARD_SHELF + ", " + USED_CARD_NEXT_QUESTIONING +
-                    " FROM " + TABLE_USED_CARD +
-                    " WHERE " + CARD_ID + "= ?", (str(card_id),))
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            card = self.load_card(card_id, cur)
+            db.close()
+            return card
+        else:
+            cursor.execute("SELECT " + USED_CARD_SHELF + ", " + USED_CARD_NEXT_QUESTIONING +
+                           " FROM " + TABLE_USED_CARD +
+                           " WHERE " + CARD_ID + "= ?", (str(card_id),))
 
-        shelf, next_questioning = cur.fetchone()
-
-        card = self.dbm.load_card(card_id)
-
-        return UsedCard(card_id, shelf, next_questioning, card.get_translations())
+            shelf, next_questioning = cursor.fetchone()
+            card = self.dbm.load_card(card_id)
+            return UsedCard(card_id, shelf, next_questioning, card.get_translations())
 
     def add_card(self, card: UsedCard):
         """
@@ -416,3 +423,18 @@ class UserDatabaseManager(DatabaseOpenHelper):
                     + " WHERE " + CARD_ID + "=?", (next_questioning, shelf, card_id))
         db.commit()
         db.close()
+
+    def get_all_cards(self):
+        """
+        Loads all cards from the database and returns them
+        """
+        db = self.get_connection()
+        cur = db.cursor()
+        cur.execute("SELECT "+CARD_ID+" FROM "+TABLE_USED_CARD)
+
+        cards = []
+        for card_id, in cur.fetchall():
+            cards.append(self.load_card(card_id, cur))
+
+        db.close()
+        return cards

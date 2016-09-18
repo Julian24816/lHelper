@@ -215,3 +215,17 @@ class CardGroup:
         :param card: the card to be added
         """
         self.cards.append(card)
+
+    def __str__(self):
+        return self.name
+
+    def has_card(self, card):
+        """
+        Returns True if card in self.cards
+        :param card: the card
+        :return: True/False
+        """
+        for c in self.cards:
+            if c.Id == card.Id:
+                return True
+        return False

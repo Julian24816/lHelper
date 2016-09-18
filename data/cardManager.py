@@ -104,5 +104,41 @@ class CardManager:
         :param card: the card to be added
         :param group: the group the card should be added to
         """
+        if group.has_card(card):
+            return
         group.add_card(card)
         self.database_manager.add_card_to_group(card, group)
+
+    def get_all_cards(self, gt: str=None) -> List[UsedCard]:
+        """
+        Fetches all used cards from the database.
+        :return: a list of UsedCards
+        """
+        if gt is None:
+            return self.user_database_manager.get_all_cards()
+        else:
+            all_cards = self.user_database_manager.get_all_cards()
+            cards = []
+            for card in all_cards:
+                if card.get_translations()[0].latinUsage.word.root_forms > gt:
+                    cards.append(card)
+            return cards
+
+    def add_card_group(self, group_name, parent_name=None):
+        """
+        Adds a card group to the database.
+        :param group_name: the groups name
+        :param parent_name: the groups parents name.
+        :return: the groups id
+        """
+        if parent_name is not None:
+            return self.database_manager.add_group(CardGroup(group_name, [], CardGroup(parent_name, [])))
+        return self.database_manager.add_group(CardGroup(group_name, []))
+
+    def get_card_group(self, group_id):
+        """
+        Loads a card group from the database
+        :param group_id: the groups id
+        :return: the card group
+        """
+        return self.database_manager.load_group(group_id)
