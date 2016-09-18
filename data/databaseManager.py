@@ -103,7 +103,7 @@ class DatabaseManager(DatabaseOpenHelper):
         db.commit()
         db.close()
 
-    def load_card(self, card_id: int, cursor: sqlite3.Cursor=None) -> Card:
+    def load_card(self, card_id: int, cursor: sqlite3.Cursor = None) -> Card:
         """
         Loads a card from the database accessed by cursor.
         :param card_id: the card's id
@@ -238,7 +238,7 @@ class DatabaseManager(DatabaseOpenHelper):
             return cursor.execute("SELECT " + WORD_ID + " FROM " + TABLE_WORD
                                   + " WHERE " + WORD_ROOT_FORMS + "= ?", (word.root_forms,)).fetchone()[0]
 
-    def add_group(self, group: CardGroup, cursor: sqlite3.Cursor=None) -> int:
+    def add_group(self, group: CardGroup, cursor: sqlite3.Cursor = None) -> int:
         """
         Tries to add the group to the database accessed by cursor and returns the groups id anyways.
         :param group: the group to be added
@@ -287,11 +287,27 @@ class DatabaseManager(DatabaseOpenHelper):
         group = CardGroup(cur.fetchone()[0], [])
         cur.execute("SELECT " + CARD_ID +
                     " FROM " + TABLE_CARD_GROUP +
-                    " WHERE " + GROUP_ID + " IN ("+",".join(self.get_child_ids(group_id, cur))+")")
+                    " WHERE " + GROUP_ID + " IN (" + ",".join(map(str, self.get_subgroup_ids(group_id, cur))) + ")")
         for cardId in cur:
             group.add_card(self.load_card(cardId, cur))
         db.close()
         return group
+
+    def get_subgroup_ids(self, group_id: int, cursor: sqlite3.Cursor) -> List[int]:
+        """
+        Loads all subgroups of group_id from the database and subgroups of these ...
+        :param group_id: the starting group_id
+        :param cursor: the database cursor to be used
+        :return: a list of group_ids
+        """
+        ids = [group_id]
+        for group in ids:
+            cursor.execute("SELECT " + GROUP_ID + " FROM " + TABLE_GROUP
+                           + " WHERE " + GROUP_PARENT + "=?", (group,))
+            for el in cursor:
+                if el not in ids:
+                    ids.append(el)
+        return ids
 
     def add_card_to_group(self, card: Card, group: CardGroup):
         """
