@@ -16,9 +16,14 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides data to other modules
+Provides data to other modules.
 """
 
+from data.databaseManager import DatabaseManager, UserDatabaseManager
 from data.cardManager import CardManager
+from data.classes import UsedCard
 
-card_manager = CardManager()
+database_manager = DatabaseManager("data.sqlite3")
+user_database_manager = UserDatabaseManager("julian", database_manager)
+
+card_manager = CardManager(user_database_manager)
