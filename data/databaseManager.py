@@ -293,6 +293,23 @@ class DatabaseManager(DatabaseOpenHelper):
         db.close()
         return group
 
+    def add_card_to_group(self, card: Card, group: CardGroup):
+        """
+        Adds a card to a group in the database. Adds the group if needed.
+        :param card: the card to be added to the group
+        :param group: the group the card should be added to
+        """
+        db = self.get_connection()
+        cur = db.cursor()
+        group_id = self.add_group(group, cur)
+
+        cur.execute("INSERT INTO " + TABLE_CARD_GROUP + "("
+                    + ",".join((GROUP_ID, CARD_ID))
+                    + ") VALUES (?,?)", (group_id, card.Id))
+
+        db.commit()
+        db.close()
+
 
 @Singleton
 class UserDatabaseManager(DatabaseOpenHelper):

@@ -343,10 +343,8 @@ def port_data():
         data.user_database_manager.add_card(card)
 
 
-
-
 if __name__ == '__main__':
-    dm = Datamanager('data.sqlite3')
+    dm = Datamanager('old_data.sqlite3')
     for card in dm.getDueCards(1):
         print(card)
         print()

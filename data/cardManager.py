@@ -22,8 +22,8 @@ Instantiate CardManager to get access to the functionality.
 
 from singleton import Singleton
 from typing import List
-from data.classes import UsedCard
-from data.databaseManager import UserDatabaseManager
+from data.classes import UsedCard, Card, CardGroup
+from data.databaseManager import DatabaseManager, UserDatabaseManager
 from random import choice
 from time import localtime, time, strftime
 
@@ -35,8 +35,9 @@ class CardManager:
     """
     CARD_PORTION = 100
 
-    def __init__(self, user_database_manager: UserDatabaseManager):
+    def __init__(self, user_database_manager: UserDatabaseManager, database_manager: DatabaseManager):
         self.user_database_manager = user_database_manager
+        self.database_manager = database_manager
 
     def get_due_cards(self, max_shelf: int) -> List[UsedCard]:
         """
@@ -96,3 +97,12 @@ class CardManager:
         card.next_questioning = strftime('%Y-%m-%d')
 
         self.user_database_manager.update_db(card.Id, card.shelf, card.next_questioning)
+
+    def add_card_to_group(self, card: Card, group: CardGroup):
+        """
+        Adds a card to a card_group.
+        :param card: the card to be added
+        :param group: the group the card should be added to
+        """
+        group.add_card(card)
+        self.database_manager.add_card_to_group(card, group)
