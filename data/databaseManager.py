@@ -241,9 +241,10 @@ class DatabaseManager(DatabaseOpenHelper):
         if cursor is None:
             db = self.get_connection()
             cursor = db.cursor()
-            self.add_group(group, cursor)
+            group_id = self.add_group(group, cursor)
             db.commit()
             db.close()
+            return group_id
         else:
             # fetch parent_id
             parent_id = None
