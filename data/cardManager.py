@@ -45,8 +45,6 @@ class CardManager:
         """
         card_ids = self.user_database_manager.get_due_cards(max_shelf)
 
-        print("choose {} out of {} ...".format(self.CARD_PORTION, len(card_ids)))
-
         shelves = set(card_ids.values())
         if 0 in shelves:
             shelves.remove(0)

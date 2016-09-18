@@ -20,28 +20,38 @@ Provides data classes.
 """
 
 from typing import List, Tuple
-from time import strftime, localtime, time
 
 
+def cache(cls):
+    """
+    Caches the class.
+    :param cls: the class to be cached
+    :return: a function to initialize the class
+    """
+    memory = {}
+
+    def helper(*args):
+        """
+        Returns an instance of the cached cls.
+        :param args: the args the instance should be instantiated with
+        :return: the instance
+        """
+        if args not in memory:
+            memory[args] = cls(*args)
+        return memory[args]
+
+    return helper
+
+
+@cache
 class Word:
     """
     Contains a word.
     """
-    words = {}  # todo assert that no word is instantiated twice
-
-    def __new__(cls, stammformen: str, anmerkungen: str, sprache: str):
-        if stammformen not in Word.words:
-            Word.words[stammformen] = object.__new__(cls)
-            Word.words[stammformen].init(stammformen, anmerkungen, sprache)
-        return Word.words[stammformen]
-
-    def __init__(self, stammformen: str, anmerkungen: str, sprache: str):
-        pass
-
-    def init(self, stammformen: str, anmerkungen: str, sprache: str):
-        self.root_forms = stammformen.strip(" ")
-        self.annotations = anmerkungen.strip(" ")
-        self.language = sprache
+    def __init__(self, root_forms: str, annotations: str, language: str):
+        self.root_forms = root_forms.strip(" ")
+        self.annotations = annotations.strip(" ")
+        self.language = language
 
     def get_root_forms(self) -> str:
         """
@@ -49,7 +59,7 @@ class Word:
         """
         return self.root_forms
 
-    def get_anmerkungen(self) -> str:
+    def get_annotations(self) -> str:
         """
         :return: the words annotations
         """
@@ -78,22 +88,12 @@ class Word:
         return self.root_forms, None
 
 
+@cache
 class Usage:
     """
     Contains a Usage of a Word
     """
-
-    usages = {}  # todo assert that no usage is instantiated twice
-
-    def __new__(cls, word: Word, context: str):
-        if (word, context) not in Usage.usages:
-            Usage.usages[(word, context)] = object.__new__(cls)
-            Usage.usages[(word, context)].init(word, context)
-        return Usage.usages[(word, context)]
-
-    def __init__(self, word: Word, context: str): pass
-
-    def init(self, word: Word, context: str):
+    def __init__(self, word: Word, context: str):
         self.word = word
         self.context = context.strip(" ")
 
@@ -113,6 +113,7 @@ class Usage:
         return (str(self.word) + " " + self.context).strip(" ")
 
 
+@cache
 class Translation:
     """
     Contains a translation
@@ -173,7 +174,7 @@ class UsedCard(Card):
     MAX_SHELF = 7
 
     def __init__(self, card_id: int, shelf: int, next_questioning: str, translations: List[Translation]):
-        Card.__init__(self, translations, card_id=card_id)
+        super(UsedCard, self).__init__(translations, card_id=card_id)
         self.shelf = shelf
         self.next_questioning = next_questioning
 
