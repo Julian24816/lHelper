@@ -26,4 +26,4 @@ from data.classes import UsedCard
 database_manager = DatabaseManager("data.sqlite3")
 user_database_manager = UserDatabaseManager("julian", database_manager)
 
-card_manager = CardManager(user_database_manager)
+card_manager = CardManager(user_database_manager, database_manager)
