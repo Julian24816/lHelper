@@ -331,8 +331,23 @@ class Datamanager:
         return counts
 
 
+def port_data():
+    """
+    Ports the data from the old system to the new one.
+    """
+    import data
+    dm = Datamanager("old_data.sqlite3")
+    cur = dm.cursor.connection.cursor()
+    cards = [dm.getUsedCard(1, card_id) for card_id, in cur.execute("SELECT cardId FROM usedCard")]
+    for card in cards:
+        data.user_database_manager.add_card(card)
+
+
+
+
 if __name__ == '__main__':
     dm = Datamanager('data.sqlite3')
     for card in dm.getDueCards(1):
         print(card)
         print()
+

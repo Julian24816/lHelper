@@ -43,7 +43,7 @@ class CardManager:
         Loads self.CARD_PORTION many due cards from the database.
         :return: a list of UsedCards
         """
-        card_ids = self.user_database_manager.get_due_cards(max_shelf)
+        card_ids = self.user_database_manager.get_due_card_ids_and_shelves(max_shelf)
 
         shelves = set(card_ids.values())
         if 0 in shelves:

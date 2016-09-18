@@ -41,6 +41,8 @@ def question_all(cards: List[UsedCard]):
     Questions the User over the vocabulary cards.
     :param cards: vocabulary cards
     """
+
+    # prints the amount of cards in the different shelves
     counts = []
     for card in cards:
         if card.get_shelf() > len(counts) - 1:
@@ -48,17 +50,24 @@ def question_all(cards: List[UsedCard]):
         counts[card.get_shelf()] += 1
     print_shelf_counts(counts)
 
+    # while the list contains a card
     while len(cards) > 0:
         print()
 
+        # choose one of them
         card = choice(cards)
+
+        # and question the user about it
         if question(card):
             print("Correct +1")
             card_manager.correct(card)
+
+            # when answered correct remove the card from the list
             cards.remove(card)
         else:
             card_manager.wrong(card)
 
+        # print the cards new shelf and next questioning date
         print('New shelf:', card.get_shelf())
         print('Next questioning:', card.get_next_questioning())
         print(len(cards), "cards left.")
@@ -75,7 +84,7 @@ def question(card: UsedCard) -> bool:
     all_answers_correct = True
 
     #######
-    # retrieving Data from Card-object
+    # retrieve d from Card-object
 
     latin_word = None  # the latin word on the card
     meanings_with_context = {}  # dictionary of usages of the latin word and associated meanings (german words)
@@ -93,7 +102,7 @@ def question(card: UsedCard) -> bool:
         meanings_with_context[latin_usage].add(translation.get_german_usage().get_word())
 
     #######
-    # printing/asking for root forms
+    # asking for/print the root forms
 
     expected = latin_word.get_root_forms_to_question()
     if expected[1] is None:
@@ -105,7 +114,7 @@ def question(card: UsedCard) -> bool:
             all_answers_correct = False
 
     #######
-    # asking for meanings per context
+    # ask for meanings per context
 
     for latin_usage in meanings_with_context:
 
@@ -135,6 +144,6 @@ def question(card: UsedCard) -> bool:
     # return True/False according to answers
     if all_answers_correct:
         return True
-    elif input("Your answers haven't all been correct. Forward anyway? [y] ") == "y":
+    elif input("Your answers haven't all been correct. Forward anyway? [y] ").endswith("y"):
         return True  # allow for typos to be forwarded anyway
     return False

@@ -113,7 +113,6 @@ class Usage:
         return (str(self.word) + " " + self.context).strip(" ")
 
 
-@cache
 class Translation:
     """
     Contains a translation

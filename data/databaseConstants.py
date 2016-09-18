@@ -19,8 +19,6 @@
 Provides constants for the Databases.
 """
 
-DB_VERSION = 1
-
 TABLE_WORD = "word"
 WORD_ID = "word_id"
 WORD_ROOT_FORMS = "root_forms"

@@ -62,7 +62,7 @@ class DatabaseManager(DatabaseOpenHelper):
 
     def load_ids(self):
         """
-        loads the max used ids from the database
+        loads the current max ids from the database.
         :return: card_id, translation_id, usage_id, word_id
         """
         db = self.get_connection()
@@ -114,7 +114,7 @@ class DatabaseManager(DatabaseOpenHelper):
                     " WHERE c." + CARD_ID + "=" + str(card_id)
                     )
         translations = []
-        for l_root, l_annotation, l_context, g_root, g_annotation, g_context in cur.fetchall():
+        for l_root, l_annotation, l_context, g_root, g_annotation, g_context in cur:
             translations.append(Translation(Usage(Word(l_root, l_annotation, "latin"), l_context),
                                             Usage(Word(g_root, g_annotation, "german"), g_context)))
 
@@ -122,7 +122,11 @@ class DatabaseManager(DatabaseOpenHelper):
         return Card(translations, card_id)
 
     def add_card(self, card: Card) -> int:
-        """bla"""
+        """
+        Adds a card to the database and returns its new id.
+        :param card: the Card to be added
+        :return: the cards new id
+        """
         self.card_id += 1
 
         db = self.get_connection()
@@ -139,43 +143,83 @@ class DatabaseManager(DatabaseOpenHelper):
         db.close()
         return self.card_id
 
-    def add_translation_if_not_exists(self, translation, cursor):
+    def add_translation_if_not_exists(self, translation: Translation, cursor: sqlite3.Cursor) -> int:
+        """
+        Tries to add a translation to the database accessed with cursor and returns the translations id anyways.
+        :param translation: the translation to be added
+        :param cursor: the cursor to be used
+        :return: the translations id
+        """
+        # fetch the usage ids
         latin_usage_id = self.add_usage_if_not_exists(translation.latinUsage, cursor)
         german_usage_id = self.add_usage_if_not_exists(translation.germanUsage, cursor)
+
+        # try to insert the translation into the database
         try:
             cursor.execute("INSERT INTO " + TABLE_TRANSLATION + "("
                            + ",".join((TRANSLATION_ID, TRANSLATION_LATIN_USAGE_ID, TRANSLATION_GERMAN_USAGE_ID))
                            + ") VALUES (?,?,?)", (self.translation_id + 1, latin_usage_id, german_usage_id))
+
+            # up the global max translation id upon success
             self.translation_id += 1
             return self.translation_id
+
+        # translation already exists:
         except sqlite3.IntegrityError:
+            # return the existing translation's id
             return cursor.execute("SELECT " + TRANSLATION_ID + " FROM " + TABLE_TRANSLATION
                                   + " WHERE " + TRANSLATION_LATIN_USAGE_ID + "= ? AND "
                                   + TRANSLATION_GERMAN_USAGE_ID + "= ?",
                                   (latin_usage_id, german_usage_id)).fetchone()[0]
 
-    def add_usage_if_not_exists(self, usage, cursor):
+    def add_usage_if_not_exists(self, usage: Usage, cursor: sqlite3.Cursor) -> int:
+        """
+        Tries to add a usage to the database accessed with cursor and returns the usages id anyways.
+        :param usage: the usage to be added
+        :param cursor: the cursor to be used
+        :return: the usages id
+        """
+        # fetch the word id
         word_id = self.add_word_if_not_exists(usage.word, cursor)
+
+        # try to insert the usage into the database
         try:
             cursor.execute("INSERT INTO " + TABLE_USAGE + "("
                            + ", ".join((USAGE_ID, WORD_ID, USAGE_CONTEXT))
                            + ") VALUES (?,?,?)", (self.usage_id + 1, word_id, usage.context))
+
+            # up the global max usage id upon success
             self.usage_id += 1
             return self.usage_id
+
+        # usage already exists
         except sqlite3.IntegrityError:
+            # return the existing usage's id
             return cursor.execute("SELECT " + USAGE_ID + " FROM " + TABLE_USAGE
                                   + " WHERE " + WORD_ID + "= ? AND " + USAGE_CONTEXT + "= ?",
                                   (word_id, usage.context)).fetchone()[0]
 
-    def add_word_if_not_exists(self, word, cursor):
+    def add_word_if_not_exists(self, word: Word, cursor: sqlite3.Cursor) -> int:
+        """
+        Tries to add a word to the database accessed with cursor and returns the words id anyways.
+        :param word: the word to be added
+        :param cursor: the cursor to be used
+        :return: the words id
+        """
+        # try to insert the word into the database
         try:
             cursor.execute("INSERT INTO " + TABLE_WORD + "("
                            + ", ".join((WORD_ID, WORD_ROOT_FORMS, WORD_ANNOTATIONS, WORD_LANGUAGE))
                            + ") VALUES (?,?,?,?)", (self.word_id + 1, word.root_forms, word.annotations,
                                                     word.language))
+
+            # up the global max word id upon success
             self.word_id += 1
             return self.word_id
+
+        # word already exists
         except sqlite3.IntegrityError:
+            # return the existing word's id
             return cursor.execute("SELECT " + WORD_ID + " FROM " + TABLE_WORD
                                   + " WHERE " + WORD_ROOT_FORMS + "= ?", (word.root_forms,)).fetchone()[0]
 
@@ -201,7 +245,7 @@ class UserDatabaseManager(DatabaseOpenHelper):
         db.commit()
         db.close()
 
-    def get_due_cards(self, max_shelf: int) -> Dict[int, int]:
+    def get_due_card_ids_and_shelves(self, max_shelf: int) -> Dict[int, int]:
         """
         Fetches all cards from the database, that are due today ore earlier.
         :return: a list of UsedCards
@@ -230,7 +274,7 @@ class UserDatabaseManager(DatabaseOpenHelper):
         cur = db.cursor()
         cur.execute("SELECT " + USED_CARD_SHELF + ", " + USED_CARD_NEXT_QUESTIONING +
                     " FROM " + TABLE_USED_CARD +
-                    " WHERE " + CARD_ID + "=" + str(card_id))
+                    " WHERE " + CARD_ID + "= ?", (str(card_id),))
 
         shelf, next_questioning = cur.fetchone()
 
@@ -239,7 +283,10 @@ class UserDatabaseManager(DatabaseOpenHelper):
         return UsedCard(card_id, shelf, next_questioning, card.get_translations())
 
     def add_card(self, card: UsedCard):
-        """bla"""
+        """
+        Adds a used card to the database.
+        :param card: the card to be added
+        """
         card_id = self.dbm.add_card(card)
 
         db = self.get_connection()

@@ -27,17 +27,3 @@ database_manager = DatabaseManager("data.sqlite3")
 user_database_manager = UserDatabaseManager("julian", database_manager)
 
 card_manager = CardManager(user_database_manager)
-
-
-def port_data():
-    """
-    Ports the data from the old system to the new one.
-    """
-    from data.datamanager import Datamanager
-    dm = Datamanager("old_data.sqlite3")
-    cur = dm.cursor.connection.cursor()
-    cards = [dm.getUsedCard(1, card_id) for card_id, in cur.execute("SELECT cardId FROM usedCard")]
-    for card in cards:
-        user_database_manager.add_card(card)
-
-# port_data()

@@ -23,7 +23,7 @@ Provides the @Singleton decorator which makes classes singletons.
 class Singleton:
     """
     Makes a class a singleton.
-    Use as an Annotation before your class.
+    Use as a Decorator for your classes.
     """
 
     def __init__(self, cls, *args):
