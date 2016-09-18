@@ -58,29 +58,35 @@ class DatabaseManager(DatabaseOpenHelper):
 
     def __init__(self, db_name: str):
         super().__init__(db_name)
-        self.card_id, self.translation_id, self.usage_id, self.word_id = self.load_ids()
+        self.group_id = 0
+        self.card_id = 0
+        self.translation_id = 0
+        self.usage_id = 0
+        self.word_id = 0
+        self.load_ids()
 
     def load_ids(self):
         """
         loads the current max ids from the database.
-        :return: card_id, translation_id, usage_id, word_id
         """
         db = self.get_connection()
         cur = db.cursor()
+        group_id = cur.execute("SELECT MAX(" + GROUP_ID + ") FROM " + TABLE_GROUP).fetchone()[0]
         card_id = cur.execute("SELECT MAX(" + CARD_ID + ") FROM " + TABLE_CARD).fetchone()[0]
         translation_id = cur.execute("SELECT MAX(" + TRANSLATION_ID + ") FROM " + TABLE_TRANSLATION).fetchone()[0]
         usage_id = cur.execute("SELECT MAX(" + USAGE_ID + ") FROM " + TABLE_USAGE).fetchone()[0]
         word_id = cur.execute("SELECT MAX(" + WORD_ID + ") FROM " + TABLE_WORD).fetchone()[0]
         db.close()
-        if card_id is None:
-            card_id = 0
-        if translation_id is None:
-            translation_id = 0
-        if usage_id is None:
-            usage_id = 0
-        if word_id is None:
-            word_id = 0
-        return card_id, translation_id, usage_id, word_id
+        if group_id is not None:
+            self.group_id = group_id
+        if card_id is not None:
+            self.card_id = card_id
+        if translation_id is not None:
+            self.translation_id = translation_id
+        if usage_id is not None:
+            self.usage_id = usage_id
+        if word_id is not None:
+            self.word_id = word_id
 
     def create_tables(self):
         """
@@ -92,6 +98,8 @@ class DatabaseManager(DatabaseOpenHelper):
         cur.execute(CREATE_TABLE_USAGE)
         cur.execute(CREATE_TABLE_TRANSLATION)
         cur.execute(CREATE_TABLE_CARD)
+        cur.execute(CREATE_TABLE_GROUP)
+        cur.execute(CREATE_TABLE_CARD_GROUP)
         db.commit()
         db.close()
 
@@ -133,7 +141,7 @@ class DatabaseManager(DatabaseOpenHelper):
         cur = db.cursor()
 
         for translation in card.get_translations():
-            translation_id = self.add_translation_if_not_exists(translation, cur)
+            translation_id = self.add_translation(translation, cur)
             cur.execute("INSERT INTO " + TABLE_CARD + "("
                         + ",".join((TRANSLATION_ID, CARD_ID))
                         + " ) VALUES (" + ",".join((str(translation_id), str(self.card_id)))
@@ -143,7 +151,7 @@ class DatabaseManager(DatabaseOpenHelper):
         db.close()
         return self.card_id
 
-    def add_translation_if_not_exists(self, translation: Translation, cursor: sqlite3.Cursor) -> int:
+    def add_translation(self, translation: Translation, cursor: sqlite3.Cursor) -> int:
         """
         Tries to add a translation to the database accessed with cursor and returns the translations id anyways.
         :param translation: the translation to be added
@@ -151,8 +159,8 @@ class DatabaseManager(DatabaseOpenHelper):
         :return: the translations id
         """
         # fetch the usage ids
-        latin_usage_id = self.add_usage_if_not_exists(translation.latinUsage, cursor)
-        german_usage_id = self.add_usage_if_not_exists(translation.germanUsage, cursor)
+        latin_usage_id = self.add_usage(translation.latinUsage, cursor)
+        german_usage_id = self.add_usage(translation.germanUsage, cursor)
 
         # try to insert the translation into the database
         try:
@@ -172,7 +180,7 @@ class DatabaseManager(DatabaseOpenHelper):
                                   + TRANSLATION_GERMAN_USAGE_ID + "= ?",
                                   (latin_usage_id, german_usage_id)).fetchone()[0]
 
-    def add_usage_if_not_exists(self, usage: Usage, cursor: sqlite3.Cursor) -> int:
+    def add_usage(self, usage: Usage, cursor: sqlite3.Cursor) -> int:
         """
         Tries to add a usage to the database accessed with cursor and returns the usages id anyways.
         :param usage: the usage to be added
@@ -180,7 +188,7 @@ class DatabaseManager(DatabaseOpenHelper):
         :return: the usages id
         """
         # fetch the word id
-        word_id = self.add_word_if_not_exists(usage.word, cursor)
+        word_id = self.add_word(usage.word, cursor)
 
         # try to insert the usage into the database
         try:
@@ -199,7 +207,7 @@ class DatabaseManager(DatabaseOpenHelper):
                                   + " WHERE " + WORD_ID + "= ? AND " + USAGE_CONTEXT + "= ?",
                                   (word_id, usage.context)).fetchone()[0]
 
-    def add_word_if_not_exists(self, word: Word, cursor: sqlite3.Cursor) -> int:
+    def add_word(self, word: Word, cursor: sqlite3.Cursor) -> int:
         """
         Tries to add a word to the database accessed with cursor and returns the words id anyways.
         :param word: the word to be added
@@ -222,6 +230,41 @@ class DatabaseManager(DatabaseOpenHelper):
             # return the existing word's id
             return cursor.execute("SELECT " + WORD_ID + " FROM " + TABLE_WORD
                                   + " WHERE " + WORD_ROOT_FORMS + "= ?", (word.root_forms,)).fetchone()[0]
+
+    def add_group(self, group: CardGroup, cursor: sqlite3.Cursor=None) -> int:
+        """
+        Tries to add the group to the database accessed by cursor and returns the groups id anyways.
+        :param group: the group to be added
+        :param cursor:
+        :return: the groups id
+        """
+        if cursor is None:
+            db = self.get_connection()
+            cursor = db.cursor()
+            self.add_group(group, cursor)
+            db.commit()
+            db.close()
+        else:
+            # fetch parent_id
+            parent_id = None
+            if group.parent is not None:
+                parent_id = self.add_group(group.parent, cursor)
+
+            # try to insert the word into the database
+            try:
+                cursor.execute("INSERT INTO " + TABLE_GROUP + "("
+                               + ", ".join((GROUP_ID, GROUP_NAME, GROUP_PARENT))
+                               + ") VALUES (?,?,?)", (self.group_id + 1, group.name, parent_id))
+
+                # up the global max word id upon success
+                self.group_id += 1
+                return self.group_id
+
+            # group (name) already exists
+            except sqlite3.IntegrityError:
+                # return the existing group's id
+                return cursor.execute("SELECT " + GROUP_ID + " FROM " + TABLE_GROUP
+                                      + " WHERE " + GROUP_NAME + "=?", (group.name,)).fetchone()[0]
 
 
 @Singleton

@@ -48,6 +48,7 @@ class Word:
     """
     Contains a word.
     """
+
     def __init__(self, root_forms: str, annotations: str, language: str):
         self.root_forms = root_forms.strip(" ")
         self.annotations = annotations.strip(" ")
@@ -93,6 +94,7 @@ class Usage:
     """
     Contains a Usage of a Word
     """
+
     def __init__(self, word: Word, context: str):
         self.word = word
         self.context = context.strip(" ")
@@ -192,3 +194,17 @@ class UsedCard(Card):
     def __str__(self):
         return "{}\n shelf: {}, next questioning: {}".format(
             Card.__str__(self), self.shelf, self.next_questioning)
+
+
+class CardGroup:
+    """
+    A group of cards with a specific name.
+    """
+
+    def __init__(self, name: str, cards: List[Card], parent=None):
+        self.name = name
+        self.cards = cards
+        self.parent = parent
+
+    def __iter__(self):
+        return iter(self.cards)
