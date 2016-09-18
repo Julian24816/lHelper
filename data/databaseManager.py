@@ -293,6 +293,7 @@ class DatabaseManager(DatabaseOpenHelper):
         db.close()
         return group
 
+    # noinspection PyMethodMayBeStatic
     def get_subgroup_ids(self, group_id: int, cursor: sqlite3.Cursor) -> List[int]:
         """
         Loads all subgroups of group_id from the database and subgroups of these ...

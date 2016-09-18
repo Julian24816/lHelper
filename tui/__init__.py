@@ -99,6 +99,14 @@ class Question(Command):
 
 
 @MenuOptionsRegistry
+class WalkCards(Command):
+    """
+    The 'walk' command.
+    """
+    usage = "walk"
+
+
+@MenuOptionsRegistry
 class Einspeichern(Command):
     """
     The 'einspeichern' command.
