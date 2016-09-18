@@ -103,31 +103,38 @@ class DatabaseManager(DatabaseOpenHelper):
         db.commit()
         db.close()
 
-    def load_card(self, card_id: int) -> Card:
+    def load_card(self, card_id: int, cursor: sqlite3.Cursor=None) -> Card:
         """
-        Loads a card from the database.
+        Loads a card from the database accessed by cursor.
         :param card_id: the card's id
+        :param cursor: the cursor to be used
+        :return: the loaded Card
         """
-        db = self.get_connection()
-        cur = db.cursor()
+        if cursor is None:
+            db = self.get_connection()
+            curs = db.cursor()
+            card = self.load_card(card_id, curs)
+            db.close()
+            return card
+        else:
+            cursor.execute("SELECT " + ", ".join(["l." + WORD_ROOT_FORMS, "l." + WORD_ANNOTATIONS,
+                                                  "lu." + USAGE_CONTEXT, "g." + WORD_ROOT_FORMS,
+                                                  "g." + WORD_ANNOTATIONS, "gu." + USAGE_CONTEXT]) +
+                           " FROM " + TABLE_CARD + " AS c" +
+                           " JOIN " + TABLE_TRANSLATION + " AS t ON c." + TRANSLATION_ID + "=t." + TRANSLATION_ID +
+                           " JOIN " + TABLE_USAGE + " AS lu ON t." + TRANSLATION_LATIN_USAGE_ID + "=lu." + USAGE_ID +
+                           " JOIN " + TABLE_WORD + " AS l ON lu." + WORD_ID + "=l." + WORD_ID +
+                           " JOIN " + TABLE_USAGE + " AS gu ON t." + TRANSLATION_GERMAN_USAGE_ID + "=gu." + USAGE_ID +
+                           " JOIN " + TABLE_WORD + " AS g ON gu." + WORD_ID + "=g." + WORD_ID +
+                           " WHERE c." + CARD_ID + "=" + str(card_id)
+                           )
 
-        cur.execute("SELECT " + ", ".join(["l." + WORD_ROOT_FORMS, "l." + WORD_ANNOTATIONS, "lu." + USAGE_CONTEXT,
-                                           "g." + WORD_ROOT_FORMS, "g." + WORD_ANNOTATIONS, "gu." + USAGE_CONTEXT]) +
-                    " FROM " + TABLE_CARD + " AS c" +
-                    " JOIN " + TABLE_TRANSLATION + " AS t ON c." + TRANSLATION_ID + "=t." + TRANSLATION_ID +
-                    " JOIN " + TABLE_USAGE + " AS lu ON t." + TRANSLATION_LATIN_USAGE_ID + "=lu." + USAGE_ID +
-                    " JOIN " + TABLE_WORD + " AS l ON lu." + WORD_ID + "=l." + WORD_ID +
-                    " JOIN " + TABLE_USAGE + " AS gu ON t." + TRANSLATION_GERMAN_USAGE_ID + "=gu." + USAGE_ID +
-                    " JOIN " + TABLE_WORD + " AS g ON gu." + WORD_ID + "=g." + WORD_ID +
-                    " WHERE c." + CARD_ID + "=" + str(card_id)
-                    )
-        translations = []
-        for l_root, l_annotation, l_context, g_root, g_annotation, g_context in cur:
-            translations.append(Translation(Usage(Word(l_root, l_annotation, "latin"), l_context),
-                                            Usage(Word(g_root, g_annotation, "german"), g_context)))
+            translations = []
+            for l_root, l_annotation, l_context, g_root, g_annotation, g_context in iter(cursor):
+                translations.append(Translation(Usage(Word(l_root, l_annotation, "latin"), l_context),
+                                                Usage(Word(g_root, g_annotation, "german"), g_context)))
 
-        db.close()
-        return Card(translations, card_id)
+            return Card(translations, card_id)
 
     def add_card(self, card: Card) -> int:
         """
@@ -266,6 +273,25 @@ class DatabaseManager(DatabaseOpenHelper):
                 # return the existing group's id
                 return cursor.execute("SELECT " + GROUP_ID + " FROM " + TABLE_GROUP
                                       + " WHERE " + GROUP_NAME + "=?", (group.name,)).fetchone()[0]
+
+    def load_group(self, group_id: int) -> CardGroup:
+        """
+        Loads a CardGroup from the database
+        :param group_id: the groups id
+        :return: the CardGroup
+        """
+        db = self.get_connection()
+        cur = db.cursor()
+        cur.execute("SELECT " + GROUP_NAME + " FROM " + TABLE_GROUP
+                    + " WHERE " + GROUP_ID + "=?", (group_id,))
+        group = CardGroup(cur.fetchone()[0], [])
+        cur.execute("SELECT " + CARD_ID +
+                    " FROM " + TABLE_CARD_GROUP +
+                    " WHERE " + GROUP_ID + " IN ("+",".join(self.get_child_ids(group_id, cur))+")")
+        for cardId in cur:
+            group.add_card(self.load_card(cardId, cur))
+        db.close()
+        return group
 
 
 @Singleton

@@ -208,3 +208,10 @@ class CardGroup:
 
     def __iter__(self):
         return iter(self.cards)
+
+    def add_card(self, card: Card):
+        """
+        Adds a card to the group.
+        :param card: the card to be added
+        """
+        self.cards.append(card)
