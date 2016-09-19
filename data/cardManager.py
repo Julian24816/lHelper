@@ -142,3 +142,26 @@ class CardManager:
         :return: the card group
         """
         return self.database_manager.load_group(group_id)
+
+    def get_card_group_for_name(self, group_name: str) -> CardGroup:
+        """
+        Loads a group from the database
+        :param group_name: the group's name
+        :return: the group
+        """
+        return self.database_manager.get_group_for_name(group_name)
+
+    def get_all_group_names(self) -> List[str]:
+        """
+        Loads all group names from the database.
+        :return: a list of group names
+        """
+        return self.database_manager.get_all_group_names()
+
+    def repeat(self, card: UsedCard):
+        """
+        Sets the cards shelf to 1.
+        :param card: a Card
+        """
+        self.user_database_manager.set_card_shelf(card, 1)
+        self.user_database_manager.set_next_questioning(card, strftime('%Y-%m-%d'))

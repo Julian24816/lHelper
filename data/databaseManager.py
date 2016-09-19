@@ -274,27 +274,32 @@ class DatabaseManager(DatabaseOpenHelper):
                 return cursor.execute("SELECT " + GROUP_ID + " FROM " + TABLE_GROUP
                                       + " WHERE " + GROUP_NAME + "=?", (group.name,)).fetchone()[0]
 
-    def load_group(self, group_id: int) -> CardGroup:
+    def load_group(self, group_id: int, cursor: sqlite3.Cursor = None) -> CardGroup:
         """
         Loads a CardGroup from the database
         :param group_id: the groups id
         :return: the CardGroup
         """
-        db = self.get_connection()
-        cur = db.cursor()
-        cur.execute("SELECT " + GROUP_NAME + " FROM " + TABLE_GROUP
-                    + " WHERE " + GROUP_ID + "=?", (group_id,))
-        group_name = cur.fetchone()
-        if group_name is None:
-            raise ValueError("group_id does not exist.")
-        group = CardGroup(group_name[0], [])
-        cur.execute("SELECT " + CARD_ID +
-                    " FROM " + TABLE_CARD_GROUP +
-                    " WHERE " + GROUP_ID + " IN (" + ",".join(map(str, self.get_subgroup_ids(group_id, cur))) + ")")
-        for card_id, in cur.fetchall():
-            group.add_card(self.load_card(card_id, cur))
-        db.close()
-        return group
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            group = self.load_group(group_id, cur)
+            db.close()
+            return group
+        else:
+            cursor.execute("SELECT " + GROUP_NAME + " FROM " + TABLE_GROUP
+                           + " WHERE " + GROUP_ID + "=?", (group_id,))
+            group_name = cursor.fetchone()
+            if group_name is None:
+                raise ValueError("group_id does not exist.")
+            group = CardGroup(group_name[0], [])
+            cursor.execute("SELECT " + CARD_ID +
+                           " FROM " + TABLE_CARD_GROUP +
+                           " WHERE " + GROUP_ID + " IN (" + ",".join(
+                map(str, self.get_subgroup_ids(group_id, cursor))) + ")")
+            for card_id, in cursor.fetchall():
+                group.add_card(self.load_card(card_id, cursor))
+            return group
 
     # noinspection PyMethodMayBeStatic
     def get_subgroup_ids(self, group_id: int, cursor: sqlite3.Cursor) -> List[int]:
@@ -329,6 +334,36 @@ class DatabaseManager(DatabaseOpenHelper):
 
         db.commit()
         db.close()
+
+    def get_all_group_names(self) -> List[str]:
+        """
+        Loads all card group names
+        :return: a list of card group names
+        """
+        db = self.get_connection()
+        cur = db.cursor()
+        cur.execute("SELECT " + GROUP_NAME + " FROM " + TABLE_GROUP)
+        names = list(map(lambda e: e[0], cur.fetchall()))
+        db.close()
+        return names
+
+    def get_group_for_name(self, group_name) -> CardGroup:
+        """
+        Loads the group with name group_name
+        :param group_name: the group's name
+        :return: a CardGroup
+        """
+        db = self.get_connection()
+        cur = db.cursor()
+        cur.execute("SELECT " + GROUP_ID + " FROM " + TABLE_GROUP + " WHERE " + GROUP_NAME + "=?", (group_name,))
+        group_id = cur.fetchone()
+        if group_id is not None:
+            group_id = group_id[0]
+        else:
+            raise ValueError("group {} does not exist".format(group_name))
+        group = self.load_group(group_id, cur)
+        db.close()
+        return group
 
 
 @Singleton
@@ -430,7 +465,7 @@ class UserDatabaseManager(DatabaseOpenHelper):
         """
         db = self.get_connection()
         cur = db.cursor()
-        cur.execute("SELECT "+CARD_ID+" FROM "+TABLE_USED_CARD)
+        cur.execute("SELECT " + CARD_ID + " FROM " + TABLE_USED_CARD)
 
         cards = []
         for card_id, in cur.fetchall():
@@ -438,3 +473,27 @@ class UserDatabaseManager(DatabaseOpenHelper):
 
         db.close()
         return cards
+
+    def set_card_shelf(self, card: UsedCard, new_shelf: int):
+        """
+        Sets a cards shelf in the database
+        :param card: the card
+        :param new_shelf: the new shelf
+        """
+        db = self.get_connection()
+        db.execute("UPDATE " + TABLE_USED_CARD + " SET " + USED_CARD_SHELF + "=? WHERE " + CARD_ID + "=?",
+                   (new_shelf, card.Id))
+        db.commit()
+        db.close()
+
+    def set_next_questioning(self, card: UsedCard, next_questioning: str):
+        """
+        Sets the date of next questioning
+        :param card: the card to be updated
+        :param next_questioning: the new date
+        """
+        db = self.get_connection()
+        db.execute("UPDATE " + TABLE_USED_CARD + " SET " + USED_CARD_NEXT_QUESTIONING + "=? WHERE " + CARD_ID + "=?",
+                   (next_questioning, card.Id))
+        db.commit()
+        db.close()
