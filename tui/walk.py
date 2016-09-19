@@ -20,20 +20,15 @@ Provides methods for the 'walk' command.
 """
 
 from data import card_manager
+from data import Card, UsedCard
+from typing import List
 
 
-def assign_group_all(gt=None):
+def assign_group(cards: List[Card]):
     """
     Assigns all cards to a user-specified group.
     """
-    print("loading cards ...")
-    if gt is not None:
-        cards = card_manager.get_all_cards(gt)
-    else:
-        cards = card_manager.get_all_cards()
-
-    cards = sorted(cards,
-                   key=lambda c: c.get_translations()[0].latinUsage.word.root_forms)
+    cards = sorted(cards, key=lambda c: c.get_translations()[0].latinUsage.word.root_forms)
 
     current_group = None
     for card in cards:
@@ -52,3 +47,17 @@ def assign_group_all(gt=None):
             print("add card to group...")
             card_manager.add_card_to_group(card, current_group)
             print(current_group, "has", len(current_group.cards), "cards.")
+
+
+def repeat(cards: List[UsedCard]):
+    """
+    Sets the shelf of all cards in cards to 1 and their due date to today.
+    :param cards: a list of cards
+    """
+    cards = sorted(cards, key=lambda c: c.get_translations()[0].latinUsage.word.root_forms)
+    for card in cards:
+        try:
+            card_manager.repeat(card)
+        except Exception as e:
+            print(e)
+    print("done.")
