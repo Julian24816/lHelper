@@ -154,6 +154,7 @@ class WalkCards(Command):
         """
         to_return = cls.usage_notice() + "\n\n" + cls.description + "\n\n"
         to_return += "  group  : the group to be affected: a group_name or 'all'\n"
+        to_return += "           a '>word' str may be appended to all for the command to only affect cards > word"
         to_return += "  action : the action to be performed: assign_group or repeat"
         return to_return
 
