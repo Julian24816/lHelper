@@ -25,4 +25,5 @@ def lookup(word: str):
     Looks up word in the database.
     :param word: the word to be looked up
     """
+    print("not implemented yet.")
     # todo implement lookup

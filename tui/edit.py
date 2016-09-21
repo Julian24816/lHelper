@@ -27,4 +27,5 @@ def edit_card(card: UsedCard):
     Lets the user edit a card
     :param card: the card to edit.
     """
+    print("not implemented yet.")
     # todo implement edit card
