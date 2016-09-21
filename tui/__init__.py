@@ -21,6 +21,7 @@ Start the mainloop by calling main.
 """
 
 from tui.menu import Command, MenuOptionsRegistry, mainloop
+from tui.add import add_cards
 from tui.questioning import question_all
 from tui.walk import assign_group, repeat
 from data import card_manager, UsedCard
@@ -160,12 +161,18 @@ class WalkCards(Command):
 
 
 @MenuOptionsRegistry
-class Einspeichern(Command):
+class Add(Command):
     """
-    The 'einspeichern' command.
+    The 'add' command.
     """
-    usage = "einspeichern"
-    description = "starts the 'einspeichern' cycle"
+    usage = "add cards"
+    description = "starts the adding cycle"
+
+    def __init__(self, mode):
+        if mode == "cards":
+            add_cards()
+        else:
+            print(self.usage_notice())
 
 
 def main():
