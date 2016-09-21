@@ -497,3 +497,14 @@ class UserDatabaseManager(DatabaseOpenHelper):
                    (next_questioning, card.Id))
         db.commit()
         db.close()
+
+    def card_exists(self, card_id):
+        """
+        Returns True if a Card with id card_id exist.
+        :param card_id: the Cards id
+        :return: whether the card exists
+        """
+        db = self.get_connection()
+        result = db.execute("SELECT * FROM "+TABLE_USED_CARD+" WHERE "+CARD_ID+"=?", (card_id,)).fetchone() is not None
+        db.close()
+        return result

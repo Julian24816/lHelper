@@ -22,6 +22,8 @@ Start the mainloop by calling main.
 
 from tui.menu import Command, MenuOptionsRegistry, mainloop
 from tui.add import add_cards
+from tui.edit import edit_card
+from tui.lookup import lookup
 from tui.questioning import question_all
 from tui.walk import assign_group, repeat
 from data import card_manager, UsedCard
@@ -173,6 +175,37 @@ class Add(Command):
             add_cards()
         else:
             print(self.usage_notice())
+
+
+@MenuOptionsRegistry
+class Edit(Command):
+    """
+    The 'edit' command.
+    """
+    usage = "edit card_id"
+    description = "lets the user edit the card with id card_id"
+
+    def __init__(self, card_id):
+        try:
+            card_id = int(card_id)
+            if not card_manager.card_exists(card_id):
+                print("card with card_id does not exist")
+            else:
+                edit_card(card_manager.get_card(card_id))
+        except ValueError:
+            print("argument card_id must be an integer")
+
+
+@MenuOptionsRegistry
+class LookUp(Command):
+    """
+    The 'lookup' command.
+    """
+    usage = "lookup string"
+    description = "looks the string up in the database"
+
+    def __init__(self, word):
+        lookup(word)
 
 
 def main():
