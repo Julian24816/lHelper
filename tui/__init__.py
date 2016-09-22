@@ -208,6 +208,11 @@ class LookUp(Command):
         lookup(word)
 
 
+# todo add command for learning new vocabs
+
+# todo add option for starting other commands
+
+
 def main():
     """
     The TextUIs main method.

@@ -57,6 +57,8 @@ def question_all(cards: List[UsedCard]):
         # choose one of them
         card = choice(cards)
 
+        # todo let the user analyze word forms and translate them instead
+
         # and question the user about it
         if question(card):
             print("Correct +1")
