@@ -23,7 +23,7 @@ Instantiate CardManager to get access to the functionality.
 from singleton import Singleton
 from typing import List
 from data.classes import UsedCard, Card, CardGroup
-from data.databaseManager import DatabaseManager, UserDatabaseManager
+from data.oldDatabaseManager import OldDatabaseManager, OldUserDatabaseManager
 from random import choice
 from time import localtime, time, strftime
 
@@ -35,7 +35,7 @@ class CardManager:
     """
     CARD_PORTION = 100
 
-    def __init__(self, user_database_manager: UserDatabaseManager, database_manager: DatabaseManager):
+    def __init__(self, user_database_manager: OldUserDatabaseManager, database_manager: OldDatabaseManager):
         self.user_database_manager = user_database_manager
         self.database_manager = database_manager
 

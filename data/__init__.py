@@ -19,11 +19,11 @@
 Provides data to other modules.
 """
 
-from data.databaseManager import DatabaseManager, UserDatabaseManager
+from data.oldDatabaseManager import OldDatabaseManager, OldUserDatabaseManager
 from data.cardManager import CardManager
 from data.classes import UsedCard, Card
 
-database_manager = DatabaseManager("data.sqlite3")
-user_database_manager = UserDatabaseManager("julian", database_manager)
+database_manager = OldDatabaseManager("old_data.sqlite3")
+user_database_manager = OldUserDatabaseManager("old_julian", database_manager)
 
 card_manager = CardManager(user_database_manager, database_manager)

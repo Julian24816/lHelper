@@ -21,14 +21,12 @@ Responsible for all database interactions.
 
 import sqlite3
 from singleton import Singleton
+from data.oldDatabaseConstants import *
+from data.classes import *
 from typing import Dict
 from time import strftime
 
-from data.databaseConstants import *
-#from data.classes import *
 
-
-'''
 class DatabaseOpenHelper:
     """
     Responsible for opening the database.
@@ -509,4 +507,4 @@ class OldUserDatabaseManager(DatabaseOpenHelper):
         db = self.get_connection()
         result = db.execute("SELECT * FROM "+TABLE_USED_CARD+" WHERE "+CARD_ID+"=?", (card_id,)).fetchone() is not None
         db.close()
-        return result'''
+        return result
