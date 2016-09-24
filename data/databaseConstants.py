@@ -24,10 +24,10 @@ PHRASE_ID = "phrase_id"
 PHRASE_DESCRIPTION = "description"
 PHRASE_LANGUAGE = "language"
 
-CREATE_TABLE_WORD = "CREATE TABLE IF NOT EXISTS " + TABLE_PHRASE + "(" + \
-                    PHRASE_ID + " INTEGER PRIMARY KEY, " + \
-                    PHRASE_DESCRIPTION + " TEXT UNIQUE, " + \
-                    PHRASE_LANGUAGE + " TEXT);"
+CREATE_TABLE_PHRASE = "CREATE TABLE IF NOT EXISTS " + TABLE_PHRASE + "(" + \
+                      PHRASE_ID + " INTEGER PRIMARY KEY, " + \
+                      PHRASE_DESCRIPTION + " TEXT UNIQUE, " + \
+                      PHRASE_LANGUAGE + " TEXT);"
 
 
 TABLE_TRANSLATION = "translation"
