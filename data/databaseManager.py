@@ -21,6 +21,7 @@ Responsible for all database interactions.
 
 from data.databaseOpenHelper import *
 from data.databaseConstants import *
+from typing import List, Optional, Tuple
 
 
 class DatabaseManager(DatabaseOpenHelper):
@@ -79,145 +80,158 @@ class DatabaseManager(DatabaseOpenHelper):
         db.commit()
         db.close()
 
-'''
-    def add_card(self, card: Card) -> int:
+    def add_phrase(self, phrase: str, language: str, cursor: Cursor = None) -> int:
         """
-        Adds a card to the database and returns its new id.
-        :param card: the Card to be added
-        :return: the cards new id
+        Tries to add a phrase to the database and returns the phrases id independent of success.
+        :param phrase: the phrase-description
+        :param language: the phrase-language
+        :param cursor: the cursor to be used to access the database
+        :return: the phrases id
         """
-        self.card_id += 1
 
-        db = self.get_connection()
-        cur = db.cursor()
-
-        for translation in card.get_translations():
-            translation_id = self.add_translation(translation, cur)
-            cur.execute("INSERT INTO " + TABLE_CARD + "("
-                        + ",".join((TRANSLATION_ID, CARD_ID))
-                        + " ) VALUES (" + ",".join((str(translation_id), str(self.card_id)))
-                        + ")")
-
-        db.commit()
-        db.close()
-        return self.card_id
-
-    def add_translation(self, translation: Translation, cursor: sqlite3.Cursor) -> int:
-        """
-        Tries to add a translation to the database accessed with cursor and returns the translations id anyways.
-        :param translation: the translation to be added
-        :param cursor: the cursor to be used
-        :return: the translations id
-        """
-        # fetch the usage ids
-        latin_usage_id = self.add_usage(translation.latinUsage, cursor)
-        german_usage_id = self.add_usage(translation.germanUsage, cursor)
-
-        # try to insert the translation into the database
-        try:
-            cursor.execute("INSERT INTO " + TABLE_TRANSLATION + "("
-                           + ",".join((TRANSLATION_ID, TRANSLATION_LATIN_USAGE_ID, TRANSLATION_GERMAN_USAGE_ID))
-                           + ") VALUES (?,?,?)", (self.translation_id + 1, latin_usage_id, german_usage_id))
-
-            # up the global max translation id upon success
-            self.translation_id += 1
-            return self.translation_id
-
-        # translation already exists:
-        except sqlite3.IntegrityError:
-            # return the existing translation's id
-            return cursor.execute("SELECT " + TRANSLATION_ID + " FROM " + TABLE_TRANSLATION
-                                  + " WHERE " + TRANSLATION_LATIN_USAGE_ID + "= ? AND "
-                                  + TRANSLATION_GERMAN_USAGE_ID + "= ?",
-                                  (latin_usage_id, german_usage_id)).fetchone()[0]
-
-    def add_usage(self, usage: Usage, cursor: sqlite3.Cursor) -> int:
-        """
-        Tries to add a usage to the database accessed with cursor and returns the usages id anyways.
-        :param usage: the usage to be added
-        :param cursor: the cursor to be used
-        :return: the usages id
-        """
-        # fetch the word id
-        word_id = self.add_word(usage.word, cursor)
-
-        # try to insert the usage into the database
-        try:
-            cursor.execute("INSERT INTO " + TABLE_USAGE + "("
-                           + ", ".join((USAGE_ID, WORD_ID, USAGE_CONTEXT))
-                           + ") VALUES (?,?,?)", (self.usage_id + 1, word_id, usage.context))
-
-            # up the global max usage id upon success
-            self.usage_id += 1
-            return self.usage_id
-
-        # usage already exists
-        except sqlite3.IntegrityError:
-            # return the existing usage's id
-            return cursor.execute("SELECT " + USAGE_ID + " FROM " + TABLE_USAGE
-                                  + " WHERE " + WORD_ID + "= ? AND " + USAGE_CONTEXT + "= ?",
-                                  (word_id, usage.context)).fetchone()[0]
-
-    def add_word(self, word: Word, cursor: sqlite3.Cursor) -> int:
-        """
-        Tries to add a word to the database accessed with cursor and returns the words id anyways.
-        :param word: the word to be added
-        :param cursor: the cursor to be used
-        :return: the words id
-        """
-        # try to insert the word into the database
-        try:
-            cursor.execute("INSERT INTO " + TABLE_WORD + "("
-                           + ", ".join((WORD_ID, WORD_ROOT_FORMS, WORD_ANNOTATIONS, WORD_LANGUAGE))
-                           + ") VALUES (?,?,?,?)", (self.word_id + 1, word.root_forms, word.annotations,
-                                                    word.language))
-
-            # up the global max word id upon success
-            self.word_id += 1
-            return self.word_id
-
-        # word already exists
-        except sqlite3.IntegrityError:
-            # return the existing word's id
-            return cursor.execute("SELECT " + WORD_ID + " FROM " + TABLE_WORD
-                                  + " WHERE " + WORD_ROOT_FORMS + "= ?", (word.root_forms,)).fetchone()[0]
-
-    def add_group(self, group: CardGroup, cursor: sqlite3.Cursor = None) -> int:
-        """
-        Tries to add the group to the database accessed by cursor and returns the groups id anyways.
-        :param group: the group to be added
-        :param cursor:
-        :return: the groups id
-        """
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
         if cursor is None:
             db = self.get_connection()
-            cursor = db.cursor()
-            group_id = self.add_group(group, cursor)
+            cur = db.cursor()
+            phrase_id = self.add_phrase(phrase, language, cur)
+            db.commit()
+            db.close()
+            return phrase_id
+
+        # a cursor was passed on
+        else:
+
+            # try to add the phrase to the database
+            try:
+                cursor.execute("INSERT INTO " + TABLE_PHRASE + "("
+                               + ",".join((PHRASE_ID, PHRASE_DESCRIPTION, PHRASE_LANGUAGE))
+                               + ") VALUES (?,?,?);", (self.phrase_id + 1, phrase, language))
+
+                # insert succeeded
+                self.phrase_id += 1
+                return self.phrase_id
+
+            # phrase-language tuple did already exist
+            except IntegrityError:
+
+                # load the existing phrase's id
+                return cursor.execute("SELECT " + PHRASE_ID + " FROM " + TABLE_PHRASE + " WHERE "
+                                      + PHRASE_DESCRIPTION + "=? AND " + PHRASE_LANGUAGE + "=?;",
+                                      (phrase, language)).fetchone()[0]
+
+    def add_translation(self, phrase1: str, language1: str, phrase2: str, language2: str, cursor: Cursor = None) -> int:
+        """
+        Tries to add a translation from phrase1 to phrase2 to the database
+        and returns the translations id independent of success.
+        :param phrase1: the first phrase
+        :param language1: the first phrases language
+        :param phrase2: the second phrase
+        :param language2: the second phrases language
+        :param cursor: the cursor to be used to access the database
+        :return: the translations id
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            translation_id = self.add_translation(phrase1, language1, phrase2, language2, cur)
+            db.commit()
+            db.close()
+            return translation_id
+
+        # a cursor was passed on
+        else:
+            # retrieve the phrase_ids
+            phrase_id_1 = self.add_phrase(phrase1, language1, cursor)
+            phrase_id_2 = self.add_phrase(phrase2, language2, cursor)
+
+            # try to add the translation to the database
+            try:
+                cursor.execute("INSERT INTO " + TABLE_TRANSLATION + "("
+                               + ",".join((TRANSLATION_ID, TRANSLATION_PHRASE_1, TRANSLATION_PHRASE_2))
+                               + ") VALUES (?,?,?);", (self.translation_id + 1, phrase_id_1, phrase_id_2))
+
+                # insert succeeded
+                self.translation_id += 1
+                return self.translation_id
+
+            # phrase1-phrase2 tuple did already exist
+            except IntegrityError:
+
+                # load the existing translation's id
+                return cursor.execute("SELECT " + TRANSLATION_ID + " FROM " + TABLE_TRANSLATION + " WHERE "
+                                      + TRANSLATION_PHRASE_1 + "=? AND " + TRANSLATION_PHRASE_2 + "=?;",
+                                      (phrase_id_1, phrase_id_2)).fetchone()[0]
+
+    def add_card(self, translations: List[Tuple[str, str, str, str]], cursor: Cursor = None) -> int:
+        """
+        Adds a card with translations to the database and returns the cards id.
+        :param translations: a list of str-4-tuples describing the translations on the card
+        :param cursor: the cursor to be used to access the database
+        :return: the cards id
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            card_id = self.add_card(translations, cur)
+            db.commit()
+            db.close()
+            return card_id
+
+        # a cursor was passed on
+        else:
+            self.card_id += 1
+            for phrase1, language1, phrase2, language2 in translations:
+                translation_id = self.add_translation(phrase1, language1, phrase2, language2, cursor)
+                cursor.execute("INSERT INTO " + TABLE_CARD + "("
+                               + ",".join((CARD_ID, TRANSLATION_ID))
+                               + ") VALUES (?,?);", (self.card_id, translation_id))
+            return self.card_id
+
+    def add_group(self, group: Tuple[str, Optional[str]], cursor: Cursor = None) -> int:
+        """
+        Tries to add a group to the database and returns the groups id independent of success.
+        :param group: the group to be added
+        :param cursor: the cursor to be used to access the database
+        :return: the groups id
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            group_id = self.add_group(group, cur)
             db.commit()
             db.close()
             return group_id
-        else:
-            # fetch parent_id
-            parent_id = None
-            if group.parent is not None:
-                parent_id = self.add_group(group.parent, cursor)
 
-            # try to insert the word into the database
+        # a cursor was passed on
+        else:
+            # retrieve the parent_id
+            parent = self.add_group((group[1], None), cursor) if group[1] else None
+
+            # try to add the group to the database
             try:
                 cursor.execute("INSERT INTO " + TABLE_GROUP + "("
-                               + ", ".join((GROUP_ID, GROUP_NAME, GROUP_PARENT))
-                               + ") VALUES (?,?,?)", (self.group_id + 1, group.name, parent_id))
+                               + ",".join((GROUP_ID, GROUP_NAME, GROUP_PARENT))
+                               + ") VALUES (?,?,?);", (self.group_id + 1, group[0], parent))
 
-                # up the global max word id upon success
+                # insert succeeded
                 self.group_id += 1
                 return self.group_id
 
-            # group (name) already exists
-            except sqlite3.IntegrityError:
-                # return the existing group's id
-                return cursor.execute("SELECT " + GROUP_ID + " FROM " + TABLE_GROUP
-                                      + " WHERE " + GROUP_NAME + "=?", (group.name,)).fetchone()[0]
+            # group name did already exist
+            except IntegrityError:
 
+                # load the existing groups's id
+                return cursor.execute("SELECT " + GROUP_ID + " FROM " + TABLE_GROUP + " WHERE "
+                                      + GROUP_NAME + "=?;", (group[0],)).fetchone()[0]
+
+
+'''
     def load_card(self, card_id: int, cursor: sqlite3.Cursor = None) -> Card:
         """
         Loads a card from the database accessed by cursor.

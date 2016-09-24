@@ -26,8 +26,9 @@ PHRASE_LANGUAGE = "language"
 
 CREATE_TABLE_PHRASE = "CREATE TABLE IF NOT EXISTS " + TABLE_PHRASE + "(" + \
                       PHRASE_ID + " INTEGER PRIMARY KEY, " + \
-                      PHRASE_DESCRIPTION + " TEXT UNIQUE, " + \
-                      PHRASE_LANGUAGE + " TEXT);"
+                      PHRASE_DESCRIPTION + " TEXT, " + \
+                      PHRASE_LANGUAGE + " TEXT, " + \
+                      "UNIQUE (" + PHRASE_DESCRIPTION + "," + PHRASE_LANGUAGE + "));"
 
 
 TABLE_TRANSLATION = "translation"

@@ -19,7 +19,7 @@
 Inherit from DatabaseOpenHelper to access functionality.
 """
 
-from sqlite3 import connect, Connection, Cursor
+from sqlite3 import connect, Connection, Cursor, IntegrityError
 
 
 class DatabaseOpenHelper:
