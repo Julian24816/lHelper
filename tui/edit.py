@@ -16,12 +16,14 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides data to other modules.
+Provides methods for the 'edit' command.
 """
 
-from data.databaseManager import *
-from data.userDatabaseManager import *
 
-database_manager = DatabaseManager("data.sqlite3")
-user_database_manager = UserDatabaseManager("julian")
-
+def edit_card(card_id: int):
+    """
+    Lets the user edit a card
+    :param card_id: the id of the card to edit.
+    """
+    print("WIP")
+    # todo implement edit card

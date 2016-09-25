@@ -16,12 +16,17 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides data to other modules.
+Provides constants for the UserDatabases.
 """
 
-from data.databaseManager import *
-from data.userDatabaseManager import *
+from data.databaseConstants import CARD_ID
 
-database_manager = DatabaseManager("data.sqlite3")
-user_database_manager = UserDatabaseManager("julian")
 
+TABLE_USED_CARD = "used_card"
+USED_CARD_SHELF = "shelf"
+USED_CARD_DUE_DATE = "due_date"
+
+CREATE_TABLE_USED_CARD = "CREATE TABLE IF NOT EXISTS " + TABLE_USED_CARD + "(" + \
+                         CARD_ID + " INTEGER PRIMARY KEY, " + \
+                         USED_CARD_SHELF + " INTEGER DEFAULT 0, " + \
+                         USED_CARD_DUE_DATE + " DATE DEFAULT CURRENT_DATE);"

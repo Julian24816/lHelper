@@ -22,20 +22,20 @@ Instantiate CardManager to get access to the functionality.
 
 from singleton import Singleton
 from typing import List
-from data.classes import UsedCard, Card, CardGroup
-from data.databaseManager import DatabaseManager, UserDatabaseManager
+from data.oldClasses import UsedCard, Card, CardGroup
+from data.oldDatabaseManager import OldDatabaseManager, OldUserDatabaseManager
 from random import choice
 from time import localtime, time, strftime
 
 
 @Singleton
-class CardManager:
+class OldCardManager:
     """
     Manages the loading and saving of vocabulary cards.
     """
     CARD_PORTION = 100
 
-    def __init__(self, user_database_manager: UserDatabaseManager, database_manager: DatabaseManager):
+    def __init__(self, user_database_manager: OldUserDatabaseManager, database_manager: OldDatabaseManager):
         self.user_database_manager = user_database_manager
         self.database_manager = database_manager
 
@@ -165,3 +165,19 @@ class CardManager:
         """
         self.user_database_manager.set_card_shelf(card, 1)
         self.user_database_manager.set_next_questioning(card, strftime('%Y-%m-%d'))
+
+    def card_exists(self, card_id: int) -> bool:
+        """
+        Returns True if a Card with id card_id exist.
+        :param card_id: the Cards id
+        :return: True|False
+        """
+        return self.user_database_manager.card_exists(card_id)
+
+    def get_card(self, card_id: int) -> UsedCard:
+        """
+        Returns the card with card_id
+        :param card_id: the cards id
+        :return: a Card
+        """
+        return self.user_database_manager.load_card(card_id)

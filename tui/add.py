@@ -16,12 +16,14 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides data to other modules.
+Provides methods for the 'add' cycle.
+Call add_cards to prompt the user for ney cards.
 """
 
-from data.databaseManager import *
-from data.userDatabaseManager import *
 
-database_manager = DatabaseManager("data.sqlite3")
-user_database_manager = UserDatabaseManager("julian")
-
+def add_cards():
+    """
+    Prompts the user for new cards.
+    """
+    print("WIP")
+    # todo implement add cards

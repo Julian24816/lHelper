@@ -16,12 +16,15 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides data to other modules.
+Provides methods for the 'show' command.
 """
 
-from data.databaseManager import *
-from data.userDatabaseManager import *
 
-database_manager = DatabaseManager("data.sqlite3")
-user_database_manager = UserDatabaseManager("julian")
+def show_group(group_name: str):
+    """
+    Prints all cards in card-group group_name.
+    :param group_name: the groups name
+    """
 
+    print("WIP")
+    # todo implement show_group

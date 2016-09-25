@@ -21,30 +21,79 @@ Start the mainloop by calling main.
 """
 
 from tui.menu import Command, MenuOptionsRegistry, mainloop
-from tui.questioning import question_all
-from tui.walk import assign_group, repeat
-from data import card_manager, UsedCard
-from re import match
+
+from tui.lookup import lookup
+from tui.questioning import question_all_due, question_all_group
+from tui.show import show_group
+
+import tui.data_commands
+
+from data import database_manager
 
 
 @MenuOptionsRegistry
-class License(Command):
+class LookUp(Command):
+    """
+    The 'lookup' command.
+    """
+    usage = "lookup string"
+    description = "looks the string up in the database"
+
+    def __init__(self, *word: str):
+        if len(word) == 0:
+            raise TypeError
+        lookup(" ".join(word))
+
+
+@MenuOptionsRegistry
+class Question(Command):
+    """
+    The 'question' command.
+    """
+    usage = "question [due|group_name]"
+    description = "questions the user over all due cards or all cards in group_name"
+
+    def __init__(self, group_name: str = "due"):
+        if group_name == "due":
+            question_all_due()
+        elif database_manager.group_name_exists(group_name):
+            question_all_group(group_name)
+        else:
+            print("group_name unknown.")
+
+    @classmethod
+    def get_help(cls):
+        """
+        Returns a help string for the 'question' command.
+        :return: the help string
+        """
+        return "{}\n{}\n\n{}".format(cls.usage_notice(), cls.description, "group_name : the group to be used")
+
+
+@MenuOptionsRegistry
+class Show(Command):
     """
     The 'show c' and 'show w' commands.
     """
-    usage = "show c|w"
-    description = "show appropriate parts of LICENSE"
+    usage = "show (c|w|group_name)"
+    description = "show corresponding parts of LICENSE or all cards in card-group group_name"
 
-    def __init__(self, part: str):
-        if part == "c":
+    def __init__(self, group: str):
+        if group == "c":
             print(self.get_copyright())
-        elif part == "w":
+            return
+
+        elif group == "w":
             print(self.get_warranty())
+            return
+
+        if database_manager.group_name_exists(group):
+            show_group(group)
         else:
-            raise TypeError("unknown license part")
+            print("group_name unknown")
 
     @staticmethod
-    def get_warranty():
+    def get_warranty() -> str:
         """
         Reads the warranty part of the LICENSE.
         :return: the warranty text
@@ -58,7 +107,7 @@ class License(Command):
             return "file LICENSE not found."
 
     @staticmethod
-    def get_copyright():
+    def get_copyright() -> str:
         """
         Reads the copyright part of the LICENSE.
         :return: the copyright text
@@ -71,101 +120,43 @@ class License(Command):
         except FileNotFoundError:
             return "file LICENSE not found."
 
-
-@MenuOptionsRegistry
-class Question(Command):
-    """
-    The 'question' command.
-    """
-    usage = "question [max_shelf]"
-    description = "starts the questioning cycle"
-
-    def __init__(self, shelf=5):
-        try:
-            shelf = int(shelf)
-        except ValueError:
-            raise TypeError
-        if shelf not in range(UsedCard.MAX_SHELF+1):
-            print("max_shelf must lay between 0 and {}.".format(UsedCard.MAX_SHELF))
-            return
-
-        question_all(card_manager.get_due_cards(max_shelf=shelf))
-
     @classmethod
-    def get_help(cls):
+    def get_help(cls) -> str:
         """
-        Returns a help string for the 'question' command.
+        Returns a help string for the 'show' command.
         :return: the help string
         """
-        return "{}\n{}\n\n{}".format(cls.usage_notice(), cls.description, "max_shelf : the max shelf id to be included")
-
-
-@MenuOptionsRegistry
-class WalkCards(Command):
-    """
-    The 'walk' command.
-    """
-    usage = "walk group action"
-    description = "walk all cards in group and perform the action on them"
-
-    def __init__(self, group, action):
-        group_names = card_manager.get_all_group_names()
-
-        # search for exactly one '>'
-        if match("^[^>]+>[^>]+$",group):
-            group, gt = group.split(">")
-        else:
-            gt = None
-
-        # load group
-        if group == "all":
-            print("loading cards ...")
-            all_cards = card_manager.get_all_cards()
-            if gt:
-                cards = []
-                for card in all_cards:
-                    if card.get_translations()[0].latinUsage.word.root_forms > gt:
-                        cards.append(card)
-            else:
-                cards = all_cards
-
-        elif group in group_names:
-            print("loading cards ...")
-            cards = card_manager.get_card_group_for_name(group).cards
-
-        else:
-            print("group unknown")
-            return
-
-        # determine action
-        if action == "repeat":
-            repeat(cards)
-        elif action == "assign_group":
-            assign_group(cards)
-        else:
-            print("action unknown")
-            return
-
-    @classmethod
-    def get_help(cls):
-        """
-        Returns a help string for the 'walk' command.
-        :return: the help string
-        """
-        to_return = cls.usage_notice() + "\n\n" + cls.description + "\n\n"
-        to_return += "  group  : the group to be affected: a group_name or 'all'\n"
-        to_return += "           a '>word' str may be appended to all for the command to only affect cards > word\n"
-        to_return += "  action : the action to be performed: assign_group or repeat"
+        to_return = "{}\n{}\n\n".format(cls.usage_notice(), cls.description)
+        to_return += "  c          - show copyright\n"
+        to_return += "  w          - show warranty\n"
+        to_return += "  group_name - show all cards in card_group group_name"
         return to_return
 
 
 @MenuOptionsRegistry
-class Einspeichern(Command):
+class Use(Command):
     """
-    The 'einspeichern' command.
+    The 'use' command
     """
-    usage = "einspeichern"
-    description = "starts the 'einspeichern' cycle"
+    usage = "use group_name"
+    description = "put all cards in card-group group_name in shelf 1"
+
+    def __init__(self, group_name: str):
+        print("WIP")
+        # todo implement use
+
+
+@MenuOptionsRegistry
+class User(Command):
+    """
+    The 'user' command.
+    """
+    usage = "user user_name"
+    description = "switch to user"
+
+    def __init__(self, user_name: str):
+        print("WIP")
+        # todo implement user
 
 
 def main():

@@ -16,12 +16,14 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides data to other modules.
+Provides methods for the 'lookup' command.
 """
 
-from data.databaseManager import *
-from data.userDatabaseManager import *
 
-database_manager = DatabaseManager("data.sqlite3")
-user_database_manager = UserDatabaseManager("julian")
-
+def lookup(string: str):
+    """
+    Looks up word in the database.
+    :param string: the string to be looked up
+    """
+    print("WIP")
+    # todo implement lookup
