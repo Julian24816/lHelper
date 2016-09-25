@@ -22,7 +22,7 @@ Responsible for all database interactions.
 import sqlite3
 from singleton import Singleton
 from data.oldDatabaseConstants import *
-from data.classes import *
+from data.oldClasses import *
 from typing import Dict
 from time import strftime
 

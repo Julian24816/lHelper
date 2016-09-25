@@ -22,7 +22,7 @@ Instantiate CardManager to get access to the functionality.
 
 from singleton import Singleton
 from typing import List
-from data.classes import UsedCard, Card, CardGroup
+from data.oldClasses import UsedCard, Card, CardGroup
 from data.oldDatabaseManager import OldDatabaseManager, OldUserDatabaseManager
 from random import choice
 from time import localtime, time, strftime

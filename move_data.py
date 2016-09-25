@@ -6,7 +6,7 @@ moves the word_data to a new database
 
 from data import database_manager, user_database_manager
 from data.oldDatabaseManager import OldDatabaseManager, OldUserDatabaseManager
-from data.classes import Translation
+from data.oldClasses import Translation
 from tui.menu import choose_option
 from typing import Tuple
 
