@@ -1,4 +1,5 @@
 # coding=utf-8
+
 """
 moves the word_data to a new database
 """
@@ -14,12 +15,6 @@ old_user_database_manager = OldUserDatabaseManager("old_julian", old_database_ma
 
 
 start = "labor"
-
-
-# move groups
-database_manager.add_group("adeo")
-for page in range(9, 162, 2):
-    database_manager.add_group("adeo-" + str(page))
 
 
 # move cards
