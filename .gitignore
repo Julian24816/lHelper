@@ -1,2 +1,2 @@
 *.sqlite3
-!old_data.sqlite3
+!data.sqlite3
