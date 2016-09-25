@@ -29,7 +29,7 @@ from time import localtime, time, strftime
 
 
 @Singleton
-class CardManager:
+class OldCardManager:
     """
     Manages the loading and saving of vocabulary cards.
     """
