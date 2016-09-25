@@ -340,7 +340,7 @@ def port_data():
     cur = dm.cursor.connection.cursor()
     cards = [dm.getUsedCard(1, card_id) for card_id, in cur.execute("SELECT cardId FROM usedCard")]
     for card in cards:
-        data.user_database_manager.add_card(card)
+        data.old_user_database_manager.add_card(card)
 
 
 if __name__ == '__main__':
