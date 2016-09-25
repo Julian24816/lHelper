@@ -24,9 +24,9 @@ from data.databaseConstants import CARD_ID
 
 TABLE_USED_CARD = "used_card"
 USED_CARD_SHELF = "shelf"
-USED_CARD_NEXT_QUESTIONING = "next_questioning"
+USED_CARD_DUE_DATE = "due_date"
 
 CREATE_TABLE_USED_CARD = "CREATE TABLE IF NOT EXISTS " + TABLE_USED_CARD + "(" + \
                          CARD_ID + " INTEGER PRIMARY KEY, " + \
                          USED_CARD_SHELF + " INTEGER DEFAULT 0, " + \
-                         USED_CARD_NEXT_QUESTIONING + " DATE DEFAULT CURRENT_DATE);"
+                         USED_CARD_DUE_DATE + " DATE DEFAULT CURRENT_DATE);"

@@ -16,11 +16,17 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Responsible for all database interactions.
+Responsible for all database interactions concerning user data.
 """
 
 from data.databaseOpenHelper import *
-from data.databaseManager import DatabaseManager
+from data.userDatabaseConstants import *
+from os.path import join
+from time import strftime
+
+from typing import List, Tuple
+
+Card = Tuple[int, int, str]  # id, shelf, due_date
 
 
 class UserDatabaseManager(DatabaseOpenHelper):
@@ -28,12 +34,14 @@ class UserDatabaseManager(DatabaseOpenHelper):
     Responsible for all database interactions concerning user data.
     """
 
-    def __init__(self, user_name: str, dbm: DatabaseManager):
-        super().__init__(user_name + ".sqlite3")
+    def __init__(self, user_name: str):
+        """
+        Initializes the UserDatabaseManager to use the database user/<user_name>.sqlite3.
+        :param user_name: the user_name
+        """
+        super().__init__(join("user", user_name + ".sqlite3"))
         self.user_name = user_name
-        self.dbm = dbm
 
-'''
     def create_tables(self):
         """
         Creates the database tables if not present.
@@ -44,124 +52,138 @@ class UserDatabaseManager(DatabaseOpenHelper):
         db.commit()
         db.close()
 
-    def get_due_card_ids_and_shelves(self, max_shelf: int) -> Dict[int, int]:
-        """
-        Fetches all cards from the database, that are due today ore earlier.
-        :return: a list of UsedCards
-        """
-        db = self.get_connection()
-        cur = db.cursor()
-        today = strftime('%Y-%m-%d')
-        cur.execute("SELECT " + CARD_ID + ", " + USED_CARD_SHELF + " FROM " + TABLE_USED_CARD +
-                    " WHERE " + USED_CARD_NEXT_QUESTIONING + "<= ?" +
-                    " AND " + USED_CARD_SHELF + "<= ?", (today, max_shelf))
+    #######
+    # add entries to the database
 
-        cards = {}
-        for (card_id, shelf) in cur:
-            cards[card_id] = shelf
-
-        db.close()
-        return cards
-
-    def load_card(self, card_id: int, cursor: sqlite3.Cursor = None) -> UsedCard:
+    def add_card(self, card_id: int, shelf: int, due_date: str, cursor: Cursor = None):
         """
-        Loads a Card from the user's database and the general database.
-        :param card_id: the card's id
-        :param cursor: the cursor to be used
-        :return: a UsedCard object
+        Tries to add a card to the database.
+        :raises ValueError: if the card already exists
+        :param card_id: the cards id
+        :param shelf: the cards shelf
+        :param due_date: the cards due date
+        :param cursor: the cursor to be used to access the database.
         """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
         if cursor is None:
             db = self.get_connection()
             cur = db.cursor()
-            card = self.load_card(card_id, cur)
+            self.add_card(card_id, shelf, due_date, cur)
+            db.commit()
+            db.close()
+
+        # a cursor was passed on
+        else:
+            if self.card_is_used(card_id, cursor):
+                raise ValueError("Card {} is already used by user {}.".format(card_id, self.user_name))
+
+            cursor.execute("INSERT INTO " + TABLE_USED_CARD + "("
+                           + ",".join((CARD_ID, USED_CARD_SHELF, USED_CARD_DUE_DATE))
+                           + ") VALUES (?,?,?);", (card_id, shelf, due_date))
+
+    #######
+    # look for entries in the database
+
+    def card_is_used(self, card_id: int, cursor: Cursor = None) -> bool:
+        """
+        Checks whether a card_id exists.
+        :param card_id: the card_id
+        :param cursor: the cursor to be used to access the database
+        :return: True/False
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            presence = self.card_is_used(card_id, cur)
+            db.close()
+            return presence
+
+        # a cursor was passed on
+        else:
+            return cursor.execute("SELECT * FROM " + TABLE_USED_CARD + " WHERE " + CARD_ID + "=?;",
+                                  (card_id,)).fetchone() is not None
+
+    #######
+    # retrieve entries from the database
+
+    def get_card(self, card_id: int, cursor: Cursor = None) -> Card:
+        """
+        Loads a card from the database.
+        :param card_id: the card_id
+        :param cursor: the cursor to be used to access the database
+        :return: the cards id, its shelf and its due_date in format '%Y-%m-%d'
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            card = self.get_card(card_id, cur)
             db.close()
             return card
+
+        # a cursor was passed on
         else:
-            cursor.execute("SELECT " + USED_CARD_SHELF + ", " + USED_CARD_NEXT_QUESTIONING +
-                           " FROM " + TABLE_USED_CARD +
-                           " WHERE " + CARD_ID + "= ?", (str(card_id),))
+            if not self.card_is_used(card_id, cursor):
+                raise ValueError("Card {} is not used by user {}.".format(card_id, self.user_name))
 
-            shelf, next_questioning = cursor.fetchone()
-            card = self.dbm.load_card(card_id)
-            return UsedCard(card_id, shelf, next_questioning, card.get_translations())
+            shelf, due_date = cursor.execute("SELECT " + ",".join((USED_CARD_SHELF, USED_CARD_DUE_DATE))
+                                             + " FROM " + TABLE_USED_CARD + " WHERE " + CARD_ID + "=?;",
+                                             (card_id,)).fetchone()
+            return card_id, shelf, due_date
 
-    def add_card(self, card: UsedCard):
+    def get_due_cards(self, due_date: str = "today", cursor: Cursor = None) -> List[Card]:
         """
-        Adds a used card to the database.
-        :param card: the card to be added
+        Fetches the id of all due cards from the database.
+        :param due_date: a date in format '%Y-%m-%d' or 'today'
+        :param cursor: the cursor to be used to access the database.
+        :return: a list of 3-tuples representing the cards (id, shelf, due_date)
         """
-        card_id = self.dbm.add_card(card)
 
-        db = self.get_connection()
-        cur = db.cursor()
-        cur.execute("INSERT INTO " + TABLE_USED_CARD + "(" + ", ".join((CARD_ID, USED_CARD_SHELF,
-                                                                        USED_CARD_NEXT_QUESTIONING))
-                    + ") VALUES (?,?,?)", (card_id, card.get_shelf(), card.get_next_questioning()))
-        db.commit()
-        db.close()
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            cards = self.get_due_cards(due_date, cur)
+            db.close()
+            return cards
 
-    def update_db(self, card_id: int, shelf: int, next_questioning: str):
-        """
-        Update the database with the new values.
-        :param card_id: the card to be updated
-        :param shelf: the new shelf
-        :param next_questioning: the new date
-        """
-        db = self.get_connection()
-        cur = db.cursor()
-        cur.execute("UPDATE " + TABLE_USED_CARD
-                    + " SET " + USED_CARD_NEXT_QUESTIONING + "=?"
-                    + ", " + USED_CARD_SHELF + "=?"
-                    + " WHERE " + CARD_ID + "=?", (next_questioning, shelf, card_id))
-        db.commit()
-        db.close()
+        # a cursor was passed on
+        else:
+            if due_date == "today":
+                due_date = strftime('%Y-%m-%d')
 
-    def get_all_cards(self):
-        """
-        Loads all cards from the database and returns them
-        """
-        db = self.get_connection()
-        cur = db.cursor()
-        cur.execute("SELECT " + CARD_ID + " FROM " + TABLE_USED_CARD)
+            return cursor.execute("SELECT " + ",".join((CARD_ID, USED_CARD_SHELF, USED_CARD_DUE_DATE))
+                                  + " FROM " + TABLE_USED_CARD + " WHERE " + USED_CARD_DUE_DATE + "<=?;",
+                                  (due_date,)).fetchall()
 
-        cards = []
-        for card_id, in cur.fetchall():
-            cards.append(self.load_card(card_id, cur))
+    #######
+    # update the entries in the database
 
-        db.close()
-        return cards
+    def update_card(self, card: Card, cursor: Cursor = None):
+        """
+        Updates the card in the database to the new values.
+        :param card: a 3-tuple (id, shelf, due_date) representing the card
+        :param cursor: the cursor to be used to access the database
+        """
 
-    def set_card_shelf(self, card: UsedCard, new_shelf: int):
-        """
-        Sets a cards shelf in the database
-        :param card: the card
-        :param new_shelf: the new shelf
-        """
-        db = self.get_connection()
-        db.execute("UPDATE " + TABLE_USED_CARD + " SET " + USED_CARD_SHELF + "=? WHERE " + CARD_ID + "=?",
-                   (new_shelf, card.Id))
-        db.commit()
-        db.close()
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            self.update_card(card, cur)
+            db.commit()
+            db.close()
 
-    def set_next_questioning(self, card: UsedCard, next_questioning: str):
-        """
-        Sets the date of next questioning
-        :param card: the card to be updated
-        :param next_questioning: the new date
-        """
-        db = self.get_connection()
-        db.execute("UPDATE " + TABLE_USED_CARD + " SET " + USED_CARD_NEXT_QUESTIONING + "=? WHERE " + CARD_ID + "=?",
-                   (next_questioning, card.Id))
-        db.commit()
-        db.close()
+        # a cursor was passed on
+        else:
+            card_id, shelf, due_date = card
 
-    def card_exists(self, card_id):
-        """
-        Returns True if a Card with id card_id exist.
-        :param card_id: the Cards id
-        :return: whether the card exists
-        """
-        db = self.get_connection()
-        result = db.execute("SELECT * FROM "+TABLE_USED_CARD+" WHERE "+CARD_ID+"=?", (card_id,)).fetchone() is not None
-        db.close()
-        return result'''
+            if not self.card_is_used(card_id, cursor):
+                raise ValueError("Card {} is not used by user {}.".format(card_id, self.user_name))
+
+            cursor.execute("UPDATE " + TABLE_USED_CARD + " SET " + USED_CARD_SHELF + "=? AND "
+                           + USED_CARD_DUE_DATE + "=? WHERE " + CARD_ID + "=?;", (shelf, due_date, card_id))

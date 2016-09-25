@@ -22,6 +22,7 @@ Instantiate DatabaseManager to get access to the functionality.
 
 from data.databaseOpenHelper import *
 from data.databaseConstants import *
+
 from typing import List, Optional, Tuple
 
 Card = List[Tuple[str, str, str, str]]

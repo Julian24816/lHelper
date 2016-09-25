@@ -63,7 +63,7 @@ CREATE_TABLE_GROUP = "CREATE TABLE IF NOT EXISTS " + TABLE_GROUP + " (" + \
                      GROUP_PARENT + " INTEGER DEFAULT NULL);"
 
 
-TABLE_CARD_GROUP = "card_group_map"  # card - group map
+TABLE_CARD_GROUP = "card_group_membership"  # card - group map
 
 CREATE_TABLE_CARD_GROUP = "CREATE TABLE IF NOT EXISTS " + TABLE_CARD_GROUP + "(" + \
                           GROUP_ID + " INTEGER, " + \
