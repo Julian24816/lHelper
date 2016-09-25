@@ -21,88 +21,15 @@ Start the mainloop by calling main.
 """
 
 from tui.menu import Command, MenuOptionsRegistry, mainloop
-from tui.add import add_cards
-from tui.edit import edit_card
-from tui.lookup import lookup
-from tui.questioning import question_all
-from tui.walk import assign_group, repeat
-from data import card_manager, UsedCard
-from re import match
 
+from tui.questioning import question_all_due, question_all_group
+from tui.show import show_group
 
-@MenuOptionsRegistry
-class License(Command):
-    """
-    The 'show c' and 'show w' commands.
-    """
-    usage = "show c|w"
-    description = "show appropriate parts of LICENSE"
+from data import database_manager
 
-    def __init__(self, part: str):
-        if part == "c":
-            print(self.get_copyright())
-        elif part == "w":
-            print(self.get_warranty())
-        else:
-            raise TypeError("unknown license part")
+# from re import match
 
-    @staticmethod
-    def get_warranty():
-        """
-        Reads the warranty part of the LICENSE.
-        :return: the warranty text
-        """
-        try:
-            f = open("LICENSE")
-            lines = f.readlines()
-            f.close()
-            return "".join(lines[588:598])
-        except FileNotFoundError:
-            return "file LICENSE not found."
-
-    @staticmethod
-    def get_copyright():
-        """
-        Reads the copyright part of the LICENSE.
-        :return: the copyright text
-        """
-        try:
-            f = open("LICENSE")
-            lines = f.readlines()
-            f.close()
-            return "".join(lines[194:433])
-        except FileNotFoundError:
-            return "file LICENSE not found."
-
-
-@MenuOptionsRegistry
-class Question(Command):
-    """
-    The 'question' command.
-    """
-    usage = "question [max_shelf]"
-    description = "starts the questioning cycle"
-
-    def __init__(self, shelf=5):
-        try:
-            shelf = int(shelf)
-        except ValueError:
-            raise TypeError
-        if shelf not in range(UsedCard.MAX_SHELF+1):
-            print("max_shelf must lay between 0 and {}.".format(UsedCard.MAX_SHELF))
-            return
-
-        question_all(card_manager.get_due_cards(max_shelf=shelf))
-
-    @classmethod
-    def get_help(cls):
-        """
-        Returns a help string for the 'question' command.
-        :return: the help string
-        """
-        return "{}\n{}\n\n{}".format(cls.usage_notice(), cls.description, "max_shelf : the max shelf id to be included")
-
-
+'''
 @MenuOptionsRegistry
 class WalkCards(Command):
     """
@@ -210,7 +137,97 @@ class LookUp(Command):
 
 # todo add command for learning new vocabs
 
-# todo add option for starting other commands
+# todo add option for starting other commands at the end of the previous
+# or option to suggest the user a command
+'''
+
+
+@MenuOptionsRegistry
+class Question(Command):
+    """
+    The 'question' command.
+    """
+    usage = "question [due|group_name]"
+    description = "questions the user over all due cards or all cards in group_name"
+
+    def __init__(self, group_name: str = "due"):
+        if group_name == "due":
+            question_all_due()
+        elif database_manager.group_name_exists(group_name):
+            question_all_group(group_name)
+        else:
+            print("group_name unknown.")
+
+    @classmethod
+    def get_help(cls):
+        """
+        Returns a help string for the 'question' command.
+        :return: the help string
+        """
+        return "{}\n{}\n\n{}".format(cls.usage_notice(), cls.description, "group_name : the group to be used")
+
+
+@MenuOptionsRegistry
+class Show(Command):
+    """
+    The 'show c' and 'show w' commands.
+    """
+    usage = "show (c|w|group_name)"
+    description = "show corresponding parts of LICENSE or all cards in card-group group_name"
+
+    def __init__(self, group: str):
+        if group == "c":
+            print(self.get_copyright())
+            return
+
+        elif group == "w":
+            print(self.get_warranty())
+            return
+
+        if database_manager.group_name_exists(group):
+            show_group(group)
+        else:
+            print("group_name unknown")
+
+    @staticmethod
+    def get_warranty() -> str:
+        """
+        Reads the warranty part of the LICENSE.
+        :return: the warranty text
+        """
+        try:
+            f = open("LICENSE")
+            lines = f.readlines()
+            f.close()
+            return "".join(lines[588:598])
+        except FileNotFoundError:
+            return "file LICENSE not found."
+
+    @staticmethod
+    def get_copyright() -> str:
+        """
+        Reads the copyright part of the LICENSE.
+        :return: the copyright text
+        """
+        try:
+            f = open("LICENSE")
+            lines = f.readlines()
+            f.close()
+            return "".join(lines[194:433])
+        except FileNotFoundError:
+            return "file LICENSE not found."
+
+    @classmethod
+    def get_help(cls) -> str:
+        """
+        Returns a help string for the 'show' command.
+        :return: the help string
+        """
+        to_return = "{}\n{}\n\n".format(cls.usage_notice(), cls.description)
+        to_return += "  c          - show copyright\n"
+        to_return += "  w          - show warranty\n"
+        to_return += "  group_name - show all cards in card_group group_name"
+        return to_return
 
 
 def main():

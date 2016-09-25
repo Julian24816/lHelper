@@ -31,7 +31,7 @@ class Command:
     description = ""
 
     @classmethod
-    def get_help(cls):
+    def get_help(cls) -> str:
         """
         Returns help on the command.
         :return: a standard help string
@@ -39,21 +39,18 @@ class Command:
         return cls.usage_notice() + "\n" + cls.description
 
     @classmethod
-    def usage_notice(cls):
+    def usage_notice(cls) -> str:
         """
         Returns a usage notice.
         :return: a standard usage notice based on cls.usage.
         """
         return "Usage: " + cls.usage
 
-    def __call__(self, *args, **kwargs):
-        print("action undefined")
-
 
 class MenuOptionsRegistry:
     """
     The Registry for all the options to be available.
-    Annotate this class on your Command classes to add them to the Registry
+    Use this class as a decorator for your Command classes to add them to the Registry.
     """
     __registry = {}
 
@@ -83,8 +80,12 @@ class MenuOptionsRegistry:
         if cls.has_option(command):
             try:
                 cls.__registry[command](*args)
-            except TypeError:
+            except TypeError as e:
+                print(e)
                 print(cls.__registry[command].usage_notice())
+            except Exception as e:
+                print(e)
+                print("Please contact support.")
         else:
             raise KeyError("command not registered")
 
@@ -119,7 +120,7 @@ class Help(Command):
     usage = "help [command]"
     description = "get help (on command)"
 
-    def __init__(self, command: str=None):
+    def __init__(self, command: str = None):
         if command is None:
             commands = []
             max_usage_len = 0

@@ -15,13 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+# todo refactor questioning.py
+
 """
 Provides methods for the 'question' cycle.
 Call question_all(<List[data.Card]>) to question the user over these vocabs.
 """
 
 from typing import List
-from data import UsedCard, card_manager
 from random import choice
 
 
@@ -35,7 +36,7 @@ def print_shelf_counts(counts):
             print("Shelf {}: {} cards".format(i, counts[i]))
     print("Sum: {} cards".format(sum(counts)))
 
-
+'''
 def question_all(cards: List[UsedCard]):
     """
     Questions the User over the vocabulary cards.
@@ -149,3 +150,23 @@ def question(card: UsedCard) -> bool:
     elif input("Your answers haven't all been correct. Forward anyway? [y] ").endswith("y"):
         return True  # allow for typos to be forwarded anyway
     return False
+'''
+
+
+def question_all_due():
+    """
+    Questions the user over all due cards.
+    """
+
+    print("WIP")
+    # todo implement question all due
+
+
+def question_all_group(group_name: str):
+    """
+    Questions the user over all cards in card-group group_name.
+    :param group_name: the groups name
+    """
+
+    print("WIP")
+    # todo implement question all group
