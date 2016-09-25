@@ -25,5 +25,5 @@ def add_cards():
     """
     Prompts the user for new cards.
     """
-    print("not implemented yet.")
+    print("WIP")
     # todo implement add cards

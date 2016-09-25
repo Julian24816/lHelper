@@ -20,10 +20,10 @@ Provides methods for the 'lookup' command.
 """
 
 
-def lookup(word: str):
+def lookup(string: str):
     """
     Looks up word in the database.
-    :param word: the word to be looked up
+    :param string: the string to be looked up
     """
-    print("not implemented yet.")
+    print("WIP")
     # todo implement lookup

@@ -19,13 +19,11 @@
 Provides methods for the 'edit' command.
 """
 
-from data import UsedCard
 
-
-def edit_card(card: UsedCard):
+def edit_card(card_id: int):
     """
     Lets the user edit a card
-    :param card: the card to edit.
+    :param card_id: the id of the card to edit.
     """
-    print("not implemented yet.")
+    print("WIP")
     # todo implement edit card

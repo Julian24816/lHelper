@@ -22,105 +22,13 @@ Start the mainloop by calling main.
 
 from tui.menu import Command, MenuOptionsRegistry, mainloop
 
+from tui.lookup import lookup
 from tui.questioning import question_all_due, question_all_group
 from tui.show import show_group
 
+import tui.data_commands
+
 from data import database_manager
-
-# from re import match
-
-'''
-@MenuOptionsRegistry
-class WalkCards(Command):
-    """
-    The 'walk' command.
-    """
-    usage = "walk group action"
-    description = "walk all cards in group and perform the action on them"
-
-    def __init__(self, group, action):
-        group_names = card_manager.get_all_group_names()
-
-        # search for exactly one '>'
-        if match("^[^>]+>[^>]+$",group):
-            group, gt = group.split(">")
-        else:
-            gt = None
-
-        # load group
-        if group == "all":
-            print("loading cards ...")
-            all_cards = card_manager.get_all_cards()
-            if gt:
-                cards = []
-                for card in all_cards:
-                    if card.get_translations()[0].latinUsage.word.root_forms > gt:
-                        cards.append(card)
-            else:
-                cards = all_cards
-
-        elif group in group_names:
-            print("loading cards ...")
-            cards = card_manager.get_card_group_for_name(group).cards
-
-        else:
-            print("group unknown")
-            return
-
-        # determine action
-        if action == "repeat":
-            repeat(cards)
-        elif action == "assign_group":
-            assign_group(cards)
-        else:
-            print("action unknown")
-            return
-
-    @classmethod
-    def get_help(cls):
-        """
-        Returns a help string for the 'walk' command.
-        :return: the help string
-        """
-        to_return = cls.usage_notice() + "\n\n" + cls.description + "\n\n"
-        to_return += "  group  : the group to be affected: a group_name or 'all'\n"
-        to_return += "           a '>word' str may be appended to all for the command to only affect cards > word\n"
-        to_return += "  action : the action to be performed: assign_group or repeat"
-        return to_return
-
-
-@MenuOptionsRegistry
-class Add(Command):
-    """
-    The 'add' command.
-    """
-    usage = "add cards"
-    description = "starts the adding cycle"
-
-    def __init__(self, mode):
-        if mode == "cards":
-            add_cards()
-        else:
-            print(self.usage_notice())
-
-
-@MenuOptionsRegistry
-class Edit(Command):
-    """
-    The 'edit' command.
-    """
-    usage = "edit card_id"
-    description = "lets the user edit the card with id card_id"
-
-    def __init__(self, card_id):
-        try:
-            card_id = int(card_id)
-            if not card_manager.card_exists(card_id):
-                print("card with card_id does not exist")
-            else:
-                edit_card(card_manager.get_card(card_id))
-        except ValueError:
-            print("argument card_id must be an integer")
 
 
 @MenuOptionsRegistry
@@ -131,15 +39,10 @@ class LookUp(Command):
     usage = "lookup string"
     description = "looks the string up in the database"
 
-    def __init__(self, word):
-        lookup(word)
-
-
-# todo add command for learning new vocabs
-
-# todo add option for starting other commands at the end of the previous
-# or option to suggest the user a command
-'''
+    def __init__(self, *word: str):
+        if len(word) == 0:
+            raise TypeError
+        lookup(" ".join(word))
 
 
 @MenuOptionsRegistry
@@ -228,6 +131,32 @@ class Show(Command):
         to_return += "  w          - show warranty\n"
         to_return += "  group_name - show all cards in card_group group_name"
         return to_return
+
+
+@MenuOptionsRegistry
+class Use(Command):
+    """
+    The 'use' command
+    """
+    usage = "use group_name"
+    description = "put all cards in card-group group_name in shelf 1"
+
+    def __init__(self, group_name: str):
+        print("WIP")
+        # todo implement use
+
+
+@MenuOptionsRegistry
+class User(Command):
+    """
+    The 'user' command.
+    """
+    usage = "user user_name"
+    description = "switch to user"
+
+    def __init__(self, user_name: str):
+        print("WIP")
+        # todo implement user
 
 
 def main():
