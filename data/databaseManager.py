@@ -16,7 +16,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Responsible for all database interactions.
+Responsible for all database interactions not concerning user data.
+Instantiate DatabaseManager to get access to the functionality.
 """
 
 from data.databaseOpenHelper import *
@@ -82,6 +83,9 @@ class DatabaseManager(DatabaseOpenHelper):
         cur.execute(CREATE_TABLE_CARD_GROUP)
         db.commit()
         db.close()
+
+    #######
+    # add entries to the database
 
     def add_phrase(self, phrase: str, language: str, cursor: Cursor = None) -> int:
         """
@@ -262,6 +266,75 @@ class DatabaseManager(DatabaseOpenHelper):
             except IntegrityError:
                 pass
 
+    #######
+    # look for entries in the database
+
+    def card_exists(self, card_id: int, cursor: Cursor = None) -> bool:
+        """
+        Checks whether a card_id exists.
+        :param card_id: the card_id
+        :param cursor: the cursor to be used to access the database
+        :return: True/False
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            presence = self.card_exists(card_id, cur)
+            db.close()
+            return presence
+
+        # a cursor was passed on
+        else:
+            return cursor.execute("SELECT * FROM " + TABLE_CARD + " WHERE " + CARD_ID + "=?;",
+                                  (card_id,)).fetchone() is not None
+
+    def group_exists(self, group_id: int, cursor: Cursor = None) -> bool:
+        """
+        Checks whether a group_id exists.
+        :param group_id: the group_id
+        :param cursor: the cursor to be used to access the database
+        :return: True/False
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            presence = self.group_exists(group_id, cur)
+            db.close()
+            return presence
+
+        # a cursor was passed on
+        else:
+            return cursor.execute("SELECT * FROM " + TABLE_GROUP + " WHERE " + GROUP_ID + "=?;",
+                                  (group_id,)).fetchone() is not None
+
+    def group_name_exists(self, group_name: str, cursor: Cursor = None) -> bool:
+        """
+        Checks whether a group_name exists.
+        :param group_name: the group_name
+        :param cursor: the cursor to be used to access the database
+        :return: True/False
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            presence = self.group_name_exists(group_name, cur)
+            db.close()
+            return presence
+
+        # a cursor was passed on
+        else:
+            return cursor.execute("SELECT * FROM " + TABLE_GROUP + " WHERE " + GROUP_NAME + "=?;",
+                                  (group_name,)).fetchone() is not None
+
+    #######
+    # retrieve entries from the database
+
     def get_card(self, card_id: int, cursor: Cursor = None) -> Card:
         """
         Loads a card from the database.
@@ -280,6 +353,9 @@ class DatabaseManager(DatabaseOpenHelper):
 
         # a cursor was passed on
         else:
+            if not self.card_exists(card_id, cursor):
+                raise ValueError("Card {} does not exist".format(card_id))
+
             cursor.execute("SELECT " + ",".join(["l1." + PHRASE_DESCRIPTION, "l1." + PHRASE_LANGUAGE,
                                                  "l2." + PHRASE_DESCRIPTION, "l2." + PHRASE_LANGUAGE])
                            + " FROM " + TABLE_CARD + " AS c"
@@ -308,6 +384,9 @@ class DatabaseManager(DatabaseOpenHelper):
 
         # a cursor was passed on
         else:
+            if not self.group_exists(group_id, cursor):
+                raise ValueError("Group {} does not exist.".format(group_id))
+
             # load group name and parent name
             cursor.execute("SELECT " + ",".join((GROUP_NAME, GROUP_PARENT)) + " FROM " + TABLE_GROUP + " WHERE "
                            + GROUP_ID + "=?;", (group_id,))
@@ -346,7 +425,7 @@ class DatabaseManager(DatabaseOpenHelper):
                 group_ids.extend(map(lambda row: row[0], cursor.fetchall()))
             return group_ids
 
-    def get_group_id_for_name(self, group_name: int, cursor: Cursor = None) -> str:
+    def get_group_id_for_name(self, group_name: str, cursor: Cursor = None) -> str:
         """
         Loads a groups id from the database.
         :param group_name: the groups name
@@ -358,12 +437,15 @@ class DatabaseManager(DatabaseOpenHelper):
         if cursor is None:
             db = self.get_connection()
             cur = db.cursor()
-            group_id = self.get_subgroup_ids(group_name, cur)
+            group_id = self.get_group_id_for_name(group_name, cur)
             db.close()
             return group_id
 
         # a cursor was passed on
         else:
+            if not self.group_name_exists(group_name, cursor):
+                raise ValueError("Group name '{}' does not exist.".format(group_name))
+
             return cursor.execute("SELECT "+GROUP_ID+" FROM "+TABLE_GROUP+" WHERE "+GROUP_NAME+"=?",
                                   (group_name,)).fetchone()[0]
 
@@ -374,6 +456,6 @@ class DatabaseManager(DatabaseOpenHelper):
         """
         db = self.get_connection()
         names = list(map(lambda row: row[0],
-                         db.cursor().execute("SELECT " + GROUP_NAME + " FROM " + TABLE_GROUP).fetchall()))
+                         db.execute("SELECT " + GROUP_NAME + " FROM " + TABLE_GROUP).fetchall()))
         db.close()
         return names
