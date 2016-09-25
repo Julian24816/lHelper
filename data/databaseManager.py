@@ -220,13 +220,13 @@ class DatabaseManager(DatabaseOpenHelper):
         # a cursor was passed on
         else:
             # retrieve the parent_id
-            parent_name = self.add_group(parent_name, cursor=cursor) if parent_name else None
+            parent_id = self.add_group(parent_name, cursor=cursor) if parent_name else None
 
             # try to add the group to the database
             try:
                 cursor.execute("INSERT INTO " + TABLE_GROUP + "("
                                + ",".join((GROUP_ID, GROUP_NAME, GROUP_PARENT))
-                               + ") VALUES (?,?,?);", (self.group_id + 1, group_name[0], parent_name))
+                               + ") VALUES (?,?,?);", (self.group_id + 1, group_name, parent_id))
 
                 # insert succeeded
                 self.group_id += 1
@@ -237,7 +237,7 @@ class DatabaseManager(DatabaseOpenHelper):
 
                 # load the existing groups's id
                 return cursor.execute("SELECT " + GROUP_ID + " FROM " + TABLE_GROUP + " WHERE "
-                                      + GROUP_NAME + "=?;", (group_name[0],)).fetchone()[0]
+                                      + GROUP_NAME + "=?;", (group_name,)).fetchone()[0]
 
     def add_card_to_group(self, card_id: int, group_name: str, cursor: Cursor = None):
         """

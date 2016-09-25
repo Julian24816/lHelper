@@ -39,7 +39,7 @@ class UserDatabaseManager(DatabaseOpenHelper):
         Initializes the UserDatabaseManager to use the database user/<user_name>.sqlite3.
         :param user_name: the user_name
         """
-        super().__init__(join("user", user_name + ".sqlite3"))
+        super().__init__(user_name + ".sqlite3")
         self.user_name = user_name
 
     def create_tables(self):

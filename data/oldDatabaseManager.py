@@ -365,6 +365,18 @@ class OldDatabaseManager(DatabaseOpenHelper):
         db.close()
         return group
 
+    def get_groups_for_card(self, card_id) -> List[int]:
+        db = self.get_connection()
+        group_ids = map(lambda row: row[0], db.execute("SELECT " + GROUP_ID + " FROM " + TABLE_CARD_GROUP
+                                                       + " WHERE " + CARD_ID + "=?", (card_id,)).fetchall())
+        db.close()
+        return group_ids
+
+    def get_group_name(self, group_id) -> str:
+        db = self.get_connection()
+        name = db.execute("SELECT "+GROUP_NAME+" FROM "+TABLE_GROUP+" WHERE "+GROUP_ID+"=?", (group_id,)).fetchone()[0]
+        db.close()
+        return name
 
 @Singleton
 class OldUserDatabaseManager(DatabaseOpenHelper):
@@ -505,6 +517,7 @@ class OldUserDatabaseManager(DatabaseOpenHelper):
         :return: whether the card exists
         """
         db = self.get_connection()
-        result = db.execute("SELECT * FROM "+TABLE_USED_CARD+" WHERE "+CARD_ID+"=?", (card_id,)).fetchone() is not None
+        result = db.execute("SELECT * FROM " + TABLE_USED_CARD + " WHERE " + CARD_ID + "=?",
+                            (card_id,)).fetchone() is not None
         db.close()
         return result

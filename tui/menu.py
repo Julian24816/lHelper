@@ -19,7 +19,7 @@
 Framework for a TextUI mainloop menu.
 """
 
-from typing import Iterable
+from typing import List, Iterable
 
 
 class Command:
@@ -159,7 +159,7 @@ class MainloopExit(SystemExit):
     """
 
 
-def choose_option(options: Iterable, prompt: str) -> Iterable[str]:
+def choose_option(options: Iterable, prompt: str) -> List[str]:
     """
     prompts the user for a choice until a string is entered with the first word being in options
     :param options: a list of options the user can choose
