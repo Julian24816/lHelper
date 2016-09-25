@@ -21,7 +21,6 @@ Provides data to other modules.
 
 from data.databaseManager import *
 from data.userDatabaseManager import *
-from data.cardManager import *
 
 database_manager = DatabaseManager("data.sqlite3")
 user_database_manager = UserDatabaseManager("julian")
