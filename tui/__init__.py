@@ -152,7 +152,7 @@ class User(Command):
     The 'user' command.
     """
     usage = "user user_name"
-    description = "switch to user"
+    description = "switch to user with name user_name"
 
     def __init__(self, user_name: str):
         print("WIP")
