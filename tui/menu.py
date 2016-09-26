@@ -173,15 +173,3 @@ def choose_option(options: Iterable, prompt: str) -> List[str]:
             print("Options:", ", ".join(options))
         choice = input(prompt).strip(" ").split(" ")
     return choice
-
-
-def mainloop(prompt="$ "):
-    """
-    Repeatedly prompts the user for a command until the command exit is invoked.
-    :param prompt: the prompt to show the user
-    """
-    while True:
-        try:
-            MenuOptionsRegistry.run(*choose_option(MenuOptionsRegistry.get_options(), prompt))
-        except MainloopExit:
-            break

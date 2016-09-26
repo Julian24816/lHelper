@@ -20,7 +20,7 @@ Provides a text based UI for lHelper.
 Start the mainloop by calling main.
 """
 
-from tui.menu import Command, MenuOptionsRegistry, mainloop
+from tui.menu import choose_option, Command, MenuOptionsRegistry, MainloopExit
 
 from tui.lookup import lookup
 from tui.questioning import question_all_due, question_all_group
@@ -28,7 +28,7 @@ from tui.show import show_group
 
 import tui.data_commands
 
-from data import database_manager
+from data import database_manager, user_name, set_user
 
 
 @MenuOptionsRegistry
@@ -159,6 +159,21 @@ class User(Command):
         # todo implement user
 
 
+def mainloop():
+    """
+    Repeatedly prompts the user for a command until the command exit is invoked.
+    """
+    global prompt
+    while True:
+        try:
+            MenuOptionsRegistry.run(*choose_option(MenuOptionsRegistry.get_options(), prompt))
+        except MainloopExit:
+            break
+
+
+prompt = "$ "
+
+
 def main():
     """
     The TextUIs main method.
@@ -169,4 +184,8 @@ This program comes with ABSOLUTELY NO WARRANTY; for details type 'show w'.
 This is free software, and you are welcome to redistribute it
 under certain conditions; type 'show c' for details.""")
 
-    mainloop(prompt="$ ")
+    global prompt
+    if user_name is not None:
+        prompt = "{} $ ".format(user_name)
+
+    mainloop()
