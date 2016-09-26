@@ -25,7 +25,8 @@ from data.databaseConstants import *
 
 from typing import List, Optional, Tuple
 
-Card = List[Tuple[str, str, str, str]]
+Translation = Tuple[str, str, str, str]
+Card = Tuple[int, List[Translation]]
 Group = Tuple[str, Optional[str], List[Card]]
 
 
@@ -172,7 +173,7 @@ class DatabaseManager(DatabaseOpenHelper):
                                       + TRANSLATION_PHRASE_1 + "=? AND " + TRANSLATION_PHRASE_2 + "=?;",
                                       (phrase_id_1, phrase_id_2)).fetchone()[0]
 
-    def add_card(self, translations: Card, cursor: Cursor = None) -> int:
+    def add_card(self, translations: List[Translation], cursor: Cursor = None) -> int:
         """
         Adds a card with translations to the database and returns the cards id.
         :param translations: a list of str-4-tuples describing the translations on the card
@@ -355,7 +356,7 @@ class DatabaseManager(DatabaseOpenHelper):
         # a cursor was passed on
         else:
             if not self.card_exists(card_id, cursor):
-                raise ValueError("Card {} does not exist".format(card_id))
+                raise ValueError("Card {} does not exist.".format(card_id))
 
             cursor.execute("SELECT " + ",".join(["l1." + PHRASE_DESCRIPTION, "l1." + PHRASE_LANGUAGE,
                                                  "l2." + PHRASE_DESCRIPTION, "l2." + PHRASE_LANGUAGE])
@@ -365,7 +366,7 @@ class DatabaseManager(DatabaseOpenHelper):
                            + " JOIN " + TABLE_PHRASE + " AS l2 ON t." + TRANSLATION_PHRASE_2 + "=l2." + PHRASE_ID
                            + " WHERE c." + CARD_ID + "=?;", (card_id,))
 
-            return cursor.fetchall()
+            return card_id, cursor.fetchall()
 
     def load_group(self, group_id: int, cursor: Cursor = None) -> Group:
         """
@@ -447,7 +448,7 @@ class DatabaseManager(DatabaseOpenHelper):
             if not self.group_name_exists(group_name, cursor):
                 raise ValueError("Group name '{}' does not exist.".format(group_name))
 
-            return cursor.execute("SELECT "+GROUP_ID+" FROM "+TABLE_GROUP+" WHERE "+GROUP_NAME+"=?",
+            return cursor.execute("SELECT " + GROUP_ID + " FROM " + TABLE_GROUP + " WHERE " + GROUP_NAME + "=?",
                                   (group_name,)).fetchone()[0]
 
     def get_all_group_names(self) -> List[str]:
@@ -460,3 +461,30 @@ class DatabaseManager(DatabaseOpenHelper):
                          db.execute("SELECT " + GROUP_NAME + " FROM " + TABLE_GROUP).fetchall()))
         db.close()
         return names
+
+    def get_group_names_for_card(self, card_id: int, cursor: Cursor = None) -> List[str]:
+        """
+        Loads the names of all groups a card is in.
+        :param card_id: the cards id
+        :param cursor: the cursor to be used to access the database
+        :return: a list of group_names
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            group_names = self.get_group_names_for_card(card_id, cur)
+            db.close()
+            return group_names
+
+        # a cursor was passed on
+        else:
+            if not self.card_exists(card_id, cursor):
+                raise ValueError("Card '{}' does not exist.".format(card_id))
+
+            return list(map(lambda row: row[0],
+                            cursor.execute("SELECT " + GROUP_NAME + " FROM " + TABLE_GROUP + " AS g"
+                                           + " JOIN " + TABLE_CARD_GROUP + " AS cg ON cg." + GROUP_ID + "=g." + GROUP_ID
+                                           + " WHERE cg." + CARD_ID + "=?",
+                                           (card_id,)).fetchall()))

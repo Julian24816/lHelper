@@ -19,8 +19,10 @@
 Provides data to other modules of lHelper.
 """
 
-from data.databaseManager import *
-from data.userDatabaseManager import *
+from data.cardManager import CardManager, Card
+from data.databaseManager import DatabaseManager
+from data.userDatabaseManager import UserDatabaseManager
+
 
 from typing import List
 
@@ -54,6 +56,7 @@ database_manager = DatabaseManager("data.sqlite3")
 
 user_name = None
 user_database_manager = None
+
 
 if len(get_user_names()) == 1:
     set_user(get_user_names()[0])
