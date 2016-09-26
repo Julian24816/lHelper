@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# todo refactor questioning.py
-
 """
 Provides methods for the 'question' cycle.
 Call question_all(<List[data.Card]>) to question the user over these vocabs.
@@ -26,17 +24,6 @@ from data import CardManager, Card
 
 from typing import Iterable
 from random import choice
-
-
-def print_shelf_counts(counts):
-    """
-    Prints the amount of cards in the shelves to the console.
-    :param counts: counts[i] amount of cards in shelf i
-    """
-    for i in range(len(counts)):
-        if counts[i] != 0:
-            print("Shelf {}: {} cards".format(i, counts[i]))
-    print("Sum: {} cards".format(sum(counts)))
 
 
 def question_all_due():
@@ -54,18 +41,22 @@ def question_all_group(group_name: str):
     question_all(CardManager.get_group_for_name(group_name).get_cards())
 
 
-'''
-def question_all(cards: List[UsedCard]):
+def question_all(cards: Iterable[Card]):
     """
     Questions the User over the vocabulary cards.
     :param cards: vocabulary cards
     """
 
+    cards = list(cards)
+
     # prints the amount of cards in the different shelves
     counts = []
     for card in cards:
+        # expand counts as far as needed
         if card.get_shelf() > len(counts) - 1:
             counts += [0 for _ in range(card.get_shelf() - len(counts) + 1)]
+
+        # and count the card
         counts[card.get_shelf()] += 1
     print_shelf_counts(counts)
 
@@ -81,12 +72,12 @@ def question_all(cards: List[UsedCard]):
         # and question the user about it
         if question(card):
             print("Correct +1")
-            card_manager.correct(card)
+            CardManager.correct(card)
 
             # when answered correct remove the card from the list
             cards.remove(card)
         else:
-            card_manager.wrong(card)
+            CardManager.wrong(card)
 
         # print the cards new shelf and next questioning date
         print('New shelf:', card.get_shelf())
@@ -96,16 +87,29 @@ def question_all(cards: List[UsedCard]):
     print("Done ^^")
 
 
-def question(card: UsedCard) -> bool:
+def print_shelf_counts(counts):
+    """
+    Prints the amount of cards in the shelves to the console.
+    :param counts: counts[i] amount of cards in shelf i
+    """
+    for i in range(len(counts)):
+        if counts[i] != 0:
+            print("Shelf {}: {} cards".format(i, counts[i]))
+    print("Sum: {} cards".format(sum(counts)))
+
+
+# todo refactor questioning.py
+def question(card: Card) -> bool:
     """
     Question the User over card.
     :param card: the vocabulary card.
     :return: True if the User succeeded.
     """
+'''
     all_answers_correct = True
 
     #######
-    # retrieve d from Card-object
+    # retrieve data from Card-object
 
     latin_word = None  # the latin word on the card
     meanings_with_context = {}  # dictionary of usages of the latin word and associated meanings (german words)

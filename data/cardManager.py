@@ -48,6 +48,12 @@ class Card:
         self.translations = translations
         self.groups = set(groups)
 
+    def get_shelf(self):
+        """
+        :return: the shelf the card is on
+        """
+        return self.shelf
+
 
 class CardGroup:
     """
