@@ -80,7 +80,7 @@ def question_all(cards: Iterable[Card]):
 
         # print the cards new shelf and next questioning date
         print('New shelf:', card.get_shelf())
-        print('Next questioning:', card.get_next_questioning())
+        print('Next questioning:', card.get_due_date())
         print(len(cards), "cards left.")
 
     print("Done ^^")
@@ -203,6 +203,9 @@ def question(card: Card) -> bool:
 
         # ask for translations:
         answer = set(map(lambda word: word.strip(" "), input(": ").split(",")))
+
+        if "" in answer:
+            answer.remove("")
 
         if answer != translations[phrase]:
             all_answers_correct = False

@@ -54,6 +54,12 @@ class Card:
         """
         return self.shelf
 
+    def get_due_date(self):
+        """
+        :return: the cards due date
+        """
+        return self.due_date
+
     def get_translations(self) -> List[Translation]:
         """
         :return: the translations on the card
@@ -158,7 +164,7 @@ class CardManager:
         cards = []
         for card in due_cards[0]:
             cards.append(Card(card[0], card[1], card[2],
-                              database_manager.get_card(card[1])[1], database_manager.get_group_names_for_card(card[0])
+                              database_manager.get_card(card[0])[1], database_manager.get_group_names_for_card(card[0])
                               ))
         return cards
 
@@ -207,4 +213,4 @@ class CardManager:
         card.shelf = cls.MIN_SHELF
         card.due_date = strftime('%Y-%m-%d')  # today
 
-        user_database_manager.update_db((card.card_id, card.shelf, card.due_date))
+        user_database_manager.update_card((card.card_id, card.shelf, card.due_date))
