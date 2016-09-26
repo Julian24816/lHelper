@@ -28,7 +28,7 @@ from tui.show import show_group
 
 import tui.data_commands
 
-from data import database_manager, user_name, set_user
+from data import database_manager, user_name, set_user, get_user_names
 
 
 @MenuOptionsRegistry
@@ -155,8 +155,12 @@ class User(Command):
     description = "switch to user with name user_name"
 
     def __init__(self, user_name: str):
-        print("WIP")
-        # todo implement user
+        global prompt
+        if user_name not in get_user_names():
+            if choose_option(["y", "n"], "Username does not exist. Create new user? [y|n] ")[0] == "n":
+                return
+        set_user(user_name)
+        prompt = "{} $ ".format(user_name)
 
 
 def mainloop():

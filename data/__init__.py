@@ -47,7 +47,7 @@ def set_user(name: str):
     """
     global user_name, user_database_manager
     user_name = name
-    user_database_manager = UserDatabaseManager("name")
+    user_database_manager = UserDatabaseManager(name)
 
 
 database_manager = DatabaseManager("data.sqlite3")
