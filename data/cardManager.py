@@ -25,7 +25,7 @@ from data import database_manager, user_database_manager
 from random import choice
 from time import localtime, strftime, time
 
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Set, Tuple
 Translation = Tuple[str, str, str, str]
 
 
@@ -63,6 +63,12 @@ class CardGroup:
         self.cards = set(cards)
         self.name = name
         self.parent_name = parent_name
+
+    def get_cards(self) -> Set[Card]:
+        """
+        :return: the cards in the group
+        """
+        return self.cards
 
 
 class CardManager:

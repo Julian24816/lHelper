@@ -22,7 +22,9 @@ Provides methods for the 'question' cycle.
 Call question_all(<List[data.Card]>) to question the user over these vocabs.
 """
 
-from typing import List
+from data import CardManager, Card
+
+from typing import Iterable
 from random import choice
 
 
@@ -35,6 +37,22 @@ def print_shelf_counts(counts):
         if counts[i] != 0:
             print("Shelf {}: {} cards".format(i, counts[i]))
     print("Sum: {} cards".format(sum(counts)))
+
+
+def question_all_due():
+    """
+    Questions the user over all due cards.
+    """
+    question_all(CardManager.get_due_cards("today"))
+
+
+def question_all_group(group_name: str):
+    """
+    Questions the user over all cards in card-group group_name.
+    :param group_name: the groups name
+    """
+    question_all(CardManager.get_group_for_name(group_name).get_cards())
+
 
 '''
 def question_all(cards: List[UsedCard]):
@@ -151,22 +169,3 @@ def question(card: UsedCard) -> bool:
         return True  # allow for typos to be forwarded anyway
     return False
 '''
-
-
-def question_all_due():
-    """
-    Questions the user over all due cards.
-    """
-
-    print("WIP")
-    # todo implement question all due
-
-
-def question_all_group(group_name: str):
-    """
-    Questions the user over all cards in card-group group_name.
-    :param group_name: the groups name
-    """
-
-    print("WIP")
-    # todo implement question all group
