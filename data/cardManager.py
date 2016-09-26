@@ -54,6 +54,12 @@ class Card:
         """
         return self.shelf
 
+    def get_translations(self) -> List[Translation]:
+        """
+        :return: the translations on the card
+        """
+        return self.translations
+
 
 class CardGroup:
     """

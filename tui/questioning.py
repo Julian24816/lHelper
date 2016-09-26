@@ -24,6 +24,7 @@ from data import CardManager, Card
 
 from typing import Iterable
 from random import choice
+from re import match
 
 
 def question_all_due():
@@ -67,8 +68,6 @@ def question_all(cards: Iterable[Card]):
         # choose one of them
         card = choice(cards)
 
-        # todo let the user analyze word forms and translate them instead
-
         # and question the user about it
         if question(card):
             print("Correct +1")
@@ -98,13 +97,99 @@ def print_shelf_counts(counts):
     print("Sum: {} cards".format(sum(counts)))
 
 
-# todo refactor questioning.py
 def question(card: Card) -> bool:
     """
     Question the User over card.
     :param card: the vocabulary card.
     :return: True if the User succeeded.
     """
+
+    #######
+    # retrieve data from card
+
+    synonyms = {}
+    translations = {}
+    for phrase1, language1, phrase2, language2 in card.get_translations():
+
+        # switch pairs if pair 1 is a german phrase
+        if language1 == "german":
+            phrase1, language1, phrase2, language2 = phrase2, language2, phrase1, language1
+
+        # german-german
+        if language1 == "german":
+            continue
+
+        # latin-?
+        elif language1 == "latin":
+
+            # latin-latin == synonym
+            if language2 == "latin":
+
+                # if one of the synonyms is already registered ...
+                for phrase in synonyms:
+                    if phrase1 in synonyms[phrase]:
+                        synonyms[phrase].add(phrase2)
+                    elif phrase2 in synonyms[phrase]:
+                        synonyms[phrase].add(phrase2)
+
+                if phrase1 in synonyms:
+                    synonyms[phrase1].add(phrase2)
+                elif phrase2 in synonyms:
+                    synonyms[phrase2].add(phrase1)
+
+                # or if a translation for one of the phrases already exists, use that phrase as a key
+                elif phrase2 in translations:
+                    synonyms[phrase2] = set()
+                    synonyms[phrase2].add(phrase1)
+
+                else:  # or phrase1 in translations
+                    synonyms[phrase1] = set()
+                    synonyms[phrase1].add(phrase2)
+
+            # latin-german == translation
+            elif language2 == "german":
+
+                # if there's a synonym for phrase1 registered already, use that phrase instead
+                for phrase in synonyms:
+                    if phrase1 in synonyms[phrase]:
+                        phrase1 = phrase
+                        break
+
+                if phrase1 not in translations:
+                    translations[phrase1] = set()
+
+                translations[phrase1].add(phrase2)
+
+            else:
+                raise Exception("Unknown language: {}".format(language2))
+        else:
+            raise Exception("Unknown language: {}".format(language1))
+
+    #######
+    # question user over the data
+
+    all_answers_correct = True
+
+    for phrase in translations:
+
+        # if the phrase is a verb with at least 3 root_forms, ask user for root_forms
+        if match(".+re, .+o, .+|.+i, .+or, .+", phrase):
+            infinitive, *root_forms = map(lambda word: word.strip(" "), phrase.split(","))
+            if input(infinitive+", ") != ", ".join(root_forms):
+                all_answers_correct = False
+                print(", ".join([infinitive]+root_forms), "would be correct!")
+
+        # otherwise just print out the phrase
+        else:
+            print(phrase, end="")
+
+        # ask for translations:
+        answers = set(map(lambda word: word.strip(" "), input(": ").split(",")))
+
+        # todo check answers
+
+    # todo determine result
+
 '''
     all_answers_correct = True
 
