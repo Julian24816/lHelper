@@ -19,9 +19,9 @@
 Provides data to other modules of lHelper.
 """
 
-from data.cardManager import CardManager, Card
 from data.databaseManager import DatabaseManager
 from data.userDatabaseManager import UserDatabaseManager
+import data.cardManager as cardManager
 
 
 from typing import List
@@ -50,12 +50,16 @@ def set_user(name: str):
     global user_name, user_database_manager
     user_name = name
     user_database_manager = UserDatabaseManager(name)
+    cardManager.user_database_manager = user_database_manager
 
 
 database_manager = DatabaseManager("data.sqlite3")
 
 user_name = None
 user_database_manager = None
+
+cardManager.database_manager = database_manager
+cardManager.user_database_manager = user_database_manager
 
 
 if len(get_user_names()) == 1:

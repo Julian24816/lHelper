@@ -20,7 +20,7 @@ Provides methods for the 'question' cycle.
 Call question_all(<List[data.Card]>) to question the user over these vocabs.
 """
 
-from data import CardManager, Card
+from data.cardManager import CardManager, Card
 
 from typing import Iterable
 from random import choice
@@ -170,91 +170,57 @@ def question(card: Card) -> bool:
 
     all_answers_correct = True
 
+    already_asked = None
+
     for phrase in translations:
 
-        # if the phrase is a verb with at least 3 root_forms, ask user for root_forms
-        if match(".+re, .+o, .+|.+i, .+or, .+", phrase):
-            infinitive, *root_forms = map(lambda word: word.strip(" "), phrase.split(","))
-            if input(infinitive+", ") != ", ".join(root_forms):
-                all_answers_correct = False
-                print(", ".join([infinitive]+root_forms), "would be correct!")
-
-        # otherwise just print out the phrase
+        # split into root_forms and context
+        m = match("(.+[^,]) ", phrase)  # stuff + no comma + space + stuff
+        if m:
+            root_forms, context = phrase[:len(m.group())], phrase[len(m.group()):]
         else:
-            print(phrase, end="")
+            root_forms, context = phrase, ""
+
+        # don't print the root_forms again if they were already asked for
+        if already_asked != root_forms:
+            # print synonyms
+            if phrase in synonyms:
+                for synonym in synonyms[phrase]:
+                    print(synonym, "/", end=" ")
+
+            # if the root_forms belong to a verb with at least 3 forms, ask user for the root_forms
+            if match(".+re, .+o, .+|.+i, .+or, .+", root_forms):
+                infinitive, *rest = map(lambda word: word.strip(" "), root_forms.split(","))
+                if input(infinitive+", ") != ", ".join(rest):
+                    all_answers_correct = False
+                    print(", ".join([infinitive]+rest), "would be correct!")
+
+            # otherwise just print them out
+            else:
+                print(phrase, end="")
+
+            already_asked = root_forms
 
         # ask for translations:
-        answers = set(map(lambda word: word.strip(" "), input(": ").split(",")))
+        answer = set(map(lambda word: word.strip(" "), input(": ").split(",")))
 
-        # todo check answers
-
-    # todo determine result
-
-'''
-    all_answers_correct = True
-
-    #######
-    # retrieve data from Card-object
-
-    latin_word = None  # the latin word on the card
-    meanings_with_context = {}  # dictionary of usages of the latin word and associated meanings (german words)
-
-    for translation in card.get_translations():
-        latin_usage = translation.get_latin_usage()
-
-        if latin_word is None:  # true for first translation in card.get_translations()
-            latin_word = latin_usage.get_word()
-
-        if latin_usage not in meanings_with_context:  # assert the current usage is in the dictionary
-            meanings_with_context[latin_usage] = set()
-
-        # add the meaning to the dictionary
-        meanings_with_context[latin_usage].add(translation.get_german_usage().get_word())
-
-    #######
-    # asking for/print the root forms
-
-    expected = latin_word.get_root_forms_to_question()
-    if expected[1] is None:
-        print(expected[0], end="")
-    else:
-        answer = input(expected[0] + ", ").strip(" ")
-        if answer != expected[1]:
-            print(", ".join(expected), "would be correct")
+        if answer != translations[phrase]:
             all_answers_correct = False
-
-    #######
-    # ask for meanings per context
-
-    for latin_usage in meanings_with_context:
-
-        # ask for meanings
-        if latin_usage.get_context() == "":
-            answer = input(": ").strip(" ")
-        else:
-            answer = input(latin_usage.get_context() + ": ").strip(" ")
-
-        # convert answer to set
-        answer = set([el.strip(" ") for el in answer.split(",")])
-        if "" in answer:  # remove emtpy answer from set
-            answer.remove("")
-
-        # fetch correct meanings
-        meanings = set([word.get_root_forms() for word in meanings_with_context[latin_usage]])
-
-        # comparing the 2 answer-sets
-        if answer != meanings:
-            all_answers_correct = False
-            if len(answer - meanings) > 0:
-                print("incorrect meanings: " + ", ".join(answer - meanings))
-            if len(meanings - answer) > 0:
-                print("missing meanings: " + ", ".join(meanings - answer))
+            translations_missing = False
+            if translations[phrase] - answer:  # missing translations
+                translations_missing = True
+                print("missing:", ", ".join(translations[phrase] - answer))
+            if answer - translations[phrase]:  # wrong translations
+                print("wrong:"+("  " if translations_missing else ""), ", ".join(answer - translations[phrase]))
 
     #######
     # return True/False according to answers
+
     if all_answers_correct:
         return True
+
+    # allow for typos to be forwarded anyway
     elif input("Your answers haven't all been correct. Forward anyway? [y] ").endswith("y"):
-        return True  # allow for typos to be forwarded anyway
+        return True
+
     return False
-'''

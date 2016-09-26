@@ -82,9 +82,11 @@ class MenuOptionsRegistry:
                 cls.__registry[command](*args)
             except TypeError as e:
                 print(e)
+                raise e
                 print(cls.__registry[command].usage_notice())
             except Exception as e:
                 print(e)
+                raise e
                 print("Please contact support.")
         else:
             raise KeyError("command not registered")
