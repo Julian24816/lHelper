@@ -25,14 +25,14 @@ from random import choice
 from time import localtime, strftime, time
 
 from typing import Iterable, List, Set, Tuple
-Translation = Tuple[str, str, str, str]
 
 
 class Card:
     """
     Holds a vocabulary Card.
     """
-    def __init__(self, card_id: int, shelf: int, due_date: str, translations: List[Translation], groups: Iterable[str]):
+    def __init__(self, card_id: int, shelf: int, due_date: str, translations: List[Tuple[str, str, str, str]],
+                 groups: Iterable[str]):
         """
         Initialize the Card.
         :param card_id: the cards id in the database.
@@ -44,6 +44,8 @@ class Card:
         self.card_id = card_id
         self.shelf = shelf
         self.due_date = due_date
+
+        # todo do sth with the translation objects
         self.translations = translations
         self.groups = set(groups)
 
@@ -65,7 +67,7 @@ class Card:
         """
         return self.due_date
 
-    def get_translations(self) -> List[Translation]:
+    def get_translations(self) -> List[Tuple[str, str, str, str]]:  # todo change return type
         """
         :return: the translations on the card
         """
