@@ -48,8 +48,8 @@ class Card:
 
         self.translations = []
         for phrase1, language1, phrase2, language2 in translations:
-            self.translations.append((phrase_classes[language1](phrase1),
-                                      phrase_classes[language2](phrase2)))
+            self.translations.append((phrase_classes[language1].parse_phrase(phrase1),
+                                      phrase_classes[language2].parse_phrase(phrase2)))
 
         self.groups = set(groups)
 

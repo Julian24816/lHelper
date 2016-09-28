@@ -20,6 +20,20 @@ Provides abstract base classes for all languages.
 """
 
 
+class Language:
+    """
+    Contains a language.
+    """
+    def __init__(self, name: str):
+        self.name = name
+
+    def __repr__(self):
+        return 'Language("{}")'.format(self.name)
+
+    def __str__(self):
+        return self.name
+
+
 class Phrase:
     """
     Contains a phrase.
@@ -34,16 +48,11 @@ class Phrase:
     def __str__(self):
         return self.phrase
 
-
-class Language:
-    """
-    Contains a language.
-    """
-    def __init__(self, name: str):
-        self.name = name
-
-    def __repr__(self):
-        return 'Language("{}")'.format(self.name)
-
-    def __str__(self):
-        return self.name
+    @staticmethod
+    def parse_phrase(phrase: str):
+        """
+        Parses a phrase.
+        :param phrase: the phrase to be parsed
+        :return: a Phrase object
+        """
+        raise NotImplementedError

@@ -30,3 +30,12 @@ class GermanPhrase(Phrase):
     """
     def __init__(self, phrase_description: str):
         super(GermanPhrase, self).__init__(phrase_description, German)
+
+    @staticmethod
+    def parse_phrase(phrase: str):
+        """
+        Parses a phrase string into a german phrase.
+        :param phrase: the phrase string.
+        :return: the Phrase
+        """
+        return GermanPhrase(phrase)
