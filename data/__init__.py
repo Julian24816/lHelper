@@ -16,12 +16,16 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides data to other modules.
+Provides data to other modules of lHelper.
 """
 
-from data.databaseManager import *
-from data.userDatabaseManager import *
+from data.databaseManager import DatabaseManager
+from data.udmHandler import UDMHandler
+
 
 database_manager = DatabaseManager("data.sqlite3")
-user_database_manager = UserDatabaseManager("julian")
 
+if len(UDMHandler.get_user_names()) == 1:
+    udm_handler = UDMHandler(UDMHandler.get_user_names()[0])
+else:
+    udm_handler = UDMHandler(None)
