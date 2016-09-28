@@ -47,6 +47,12 @@ class Card:
         self.translations = translations
         self.groups = set(groups)
 
+    def get_id(self):
+        """
+        :return: the cards id
+        """
+        return self.card_id
+
     def get_shelf(self):
         """
         :return: the shelf the card is on
@@ -157,7 +163,9 @@ class CardManager:
 
         # limit card amount by using all cards in shelf 1 and 2 and using as much as possible random others
         while len(due_cards[0]) < cls.CARD_PORTION and len(due_cards[1]) > 0:
-            due_cards[0].append(choice(due_cards[1]))
+            card = choice(due_cards[1])
+            due_cards[0].append(card)
+            due_cards[1].remove(card)
 
         # load translations from database
         cards = []

@@ -68,6 +68,8 @@ def question_all(cards: Iterable[Card]):
         # choose one of them
         card = choice(cards)
 
+        # print(card.get_id())
+
         # and question the user about it
         if question(card):
             print("Correct +1")

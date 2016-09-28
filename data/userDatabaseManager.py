@@ -185,5 +185,5 @@ class UserDatabaseManager(DatabaseOpenHelper):
             if not self.card_is_used(card_id, cursor):
                 raise ValueError("Card {} is not used by user {}.".format(card_id, self.user_name))
 
-            cursor.execute("UPDATE " + TABLE_USED_CARD + " SET " + USED_CARD_SHELF + "=? AND "
+            cursor.execute("UPDATE " + TABLE_USED_CARD + " SET " + USED_CARD_SHELF + "=?, "
                            + USED_CARD_DUE_DATE + "=? WHERE " + CARD_ID + "=?;", (shelf, due_date, card_id))
