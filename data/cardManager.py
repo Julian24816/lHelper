@@ -20,13 +20,12 @@ Manages the loading and saving of vocabulary cards.
 Instantiate CardManager to get access to the functionality.
 """
 
+from data import database_manager, udm_handler
 from random import choice
 from time import localtime, strftime, time
 
 from typing import Iterable, List, Set, Tuple
 Translation = Tuple[str, str, str, str]
-
-database_manager, user_database_manager = None, None
 
 
 class Card:
@@ -108,7 +107,7 @@ class CardManager:
         :return: the card group
         """
         name, parent_name, cards = database_manager.load_group(group_id)
-        cards = list(map(lambda c: Card(*user_database_manager.get_card(c[0]), c[1],
+        cards = list(map(lambda c: Card(*udm_handler.get_udm().get_card(c[0]), c[1],
                                         database_manager.get_group_names_for_card(c[0])),
                          cards))
         cls.groups[group_id] = CardGroup(cards, name, parent_name)
@@ -150,7 +149,7 @@ class CardManager:
 
         # load data for due cards
         due_cards = [[], []]
-        for card in user_database_manager.get_due_cards(due_date):
+        for card in udm_handler.get_udm().get_due_cards(due_date):
             if card[1] <= 2:  # shelf
                 due_cards[0].append(card)
             else:
@@ -202,7 +201,7 @@ class CardManager:
         days = 2**card.shelf - 1
         card.due_date = strftime("%Y-%m-%d", localtime(time() + 86400 * days))  # in *days* days
 
-        user_database_manager.update_card((card.card_id, card.shelf, card.due_date))
+        udm_handler.get_udm().update_card((card.card_id, card.shelf, card.due_date))
 
     @classmethod
     def wrong(cls, card: Card):
@@ -213,4 +212,4 @@ class CardManager:
         card.shelf = cls.MIN_SHELF
         card.due_date = strftime('%Y-%m-%d')  # today
 
-        user_database_manager.update_card((card.card_id, card.shelf, card.due_date))
+        udm_handler.get_udm().update_card((card.card_id, card.shelf, card.due_date))

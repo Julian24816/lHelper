@@ -28,7 +28,7 @@ from tui.show import show_group
 
 import tui.data_commands
 
-from data import database_manager, user_name, set_user, get_user_names
+from data import database_manager, udm_handler
 
 
 @MenuOptionsRegistry
@@ -156,10 +156,10 @@ class User(Command):
 
     def __init__(self, name: str):
         global prompt
-        if name not in get_user_names():
+        if name not in udm_handler.get_user_names():
             if choose_option(["y", "n"], "Username does not exist. Create new user? [y|n] ")[0] == "n":
                 return
-        set_user(name)
+        udm_handler.set_user(name)
         prompt = "{} $ ".format(name)
 
 
@@ -189,7 +189,7 @@ This is free software, and you are welcome to redistribute it
 under certain conditions; type 'show c' for details.""")
 
     global prompt
-    if user_name is not None:
-        prompt = "{} $ ".format(user_name)
+    if udm_handler.get_user() is not None:
+        prompt = "{} $ ".format(udm_handler.get_user())
 
     mainloop()
