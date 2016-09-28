@@ -21,7 +21,7 @@ Instantiate CardManager to get access to the functionality.
 """
 
 from data import database_manager, udm_handler
-from language import Phrase, GermanPhrase, LatinPhrase
+from language import Phrase, phrase_classes
 from random import choice
 from time import localtime, strftime, time
 
@@ -47,9 +47,9 @@ class Card:
         self.due_date = due_date
 
         self.translations = []
-        for translation in translations:
-
-            self.translations.append(())
+        for phrase1, language1, phrase2, language2 in translations:
+            self.translations.append((phrase_classes[language1](phrase1),
+                                      phrase_classes[language2](phrase2)))
 
         self.groups = set(groups)
 
@@ -71,7 +71,7 @@ class Card:
         """
         return self.due_date
 
-    def get_translations(self) -> List[Tuple[str, str, str, str]]:  # todo change return type
+    def get_translations(self) -> List[Tuple[Phrase, Phrase]]:
         """
         :return: the translations on the card
         """

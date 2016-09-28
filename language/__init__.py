@@ -20,5 +20,7 @@ Provides language specific classes.
 """
 
 from language.abc import Phrase
-from language.latin import LatinPhrase
-from language.german import GermanPhrase
+from language.latin import LatinPhrase, Latin
+from language.german import GermanPhrase, German
+
+phrase_classes = {str(Latin): LatinPhrase, str(german): GermanPhrase}
