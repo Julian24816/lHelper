@@ -4,7 +4,7 @@
 moves the word_data to a new database
 """
 
-from data import database_manager, user_database_manager
+from data import database_manager, udm_handler
 from data.oldDatabaseManager import OldDatabaseManager, OldUserDatabaseManager
 from data.oldClasses import Translation
 from tui.menu import choose_option
@@ -72,7 +72,7 @@ for used_card in sorted(old_user_database_manager.get_all_cards(),
     card_id = database_manager.add_card(translations)
     for group in groups:
         database_manager.add_card_to_group(card_id, group)
-    user_database_manager.add_card(card_id, shelf, due_date)
+    udm_handler.get_udm().add_card(card_id, shelf, due_date)
 
     print(card_id)
     print()

@@ -115,7 +115,7 @@ class CardManager:
         name, parent_name, cards = database_manager.load_group(group_id)
         cards = list(map(lambda c: Card(*udm_handler.get_udm().get_card(c[0]), c[1],
                                         database_manager.get_group_names_for_card(c[0])),
-                         cards))
+                         cards))  # cards = List[Tuple[int, List[Translation]]]
         cls.groups[group_id] = CardGroup(cards, name, parent_name)
 
     #######

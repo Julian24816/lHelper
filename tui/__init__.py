@@ -178,15 +178,18 @@ def mainloop():
 prompt = "$ "
 
 
-def main():
+def main(user: str = None):
     """
     The TextUIs main method.
-    :return:
+    :param user: the user that should be active on start
     """
     print("""lHelper Copyright (C) 2016 Julian Mueller
 This program comes with ABSOLUTELY NO WARRANTY; for details type 'show w'.
 This is free software, and you are welcome to redistribute it
 under certain conditions; type 'show c' for details.""")
+
+    if user:
+        udm_handler.set_user(user)
 
     global prompt
     if udm_handler.get_user() is not None:

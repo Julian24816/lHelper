@@ -395,8 +395,9 @@ class DatabaseManager(DatabaseOpenHelper):
             name, parent = cursor.fetchone()
 
             # load cards
+            subgroup_ids = map(str, self.get_subgroup_ids(group_id, cursor))
             cursor.execute("SELECT " + CARD_ID + " FROM " + TABLE_CARD_GROUP + " WHERE " + GROUP_ID
-                           + " IN (" + ",".join(map(str, self.get_subgroup_ids(group_id, cursor))) + ");")
+                           + " IN (" + ",".join(subgroup_ids) + ");")
 
             cards = [self.get_card(row[0], cursor) for row in cursor.fetchall()]
 
