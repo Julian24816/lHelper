@@ -21,6 +21,7 @@ Instantiate CardManager to get access to the functionality.
 """
 
 from data import database_manager, udm_handler
+from language import Phrase, GermanPhrase, LatinPhrase
 from random import choice
 from time import localtime, strftime, time
 
@@ -45,8 +46,11 @@ class Card:
         self.shelf = shelf
         self.due_date = due_date
 
-        # todo do sth with the translation objects
-        self.translations = translations
+        self.translations = []
+        for translation in translations:
+
+            self.translations.append(())
+
         self.groups = set(groups)
 
     def get_id(self):

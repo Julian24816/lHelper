@@ -24,8 +24,26 @@ class Phrase:
     """
     Contains a phrase.
     """
-    def __init__(self, phrase: str):
+    def __init__(self, phrase: str, language: Language):
         self.phrase = phrase
+        self.language = language
+
+    def __repr__(self):
+        return 'Phrase("{}","{}")'.format(self.phrase, self.language)
 
     def __str__(self):
         return self.phrase
+
+
+class Language:
+    """
+    Contains a language.
+    """
+    def __init__(self, name: str):
+        self.name = name
+
+    def __repr__(self):
+        return 'Language("{}")'.format(self.name)
+
+    def __str__(self):
+        return self.name

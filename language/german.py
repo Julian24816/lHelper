@@ -19,11 +19,14 @@
 Manages the parsing of german phrases.
 """
 
-from language.abc import Phrase
+from language.abc import Language, Phrase
+
+German = Language("german")
 
 
-class LatinPhrase(Phrase):
+class GermanPhrase(Phrase):
     """
     Holds a German phrase.
     """
-
+    def __init__(self, phrase_description: str):
+        super(GermanPhrase, self).__init__(phrase_description, German)

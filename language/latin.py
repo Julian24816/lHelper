@@ -19,7 +19,9 @@
 Manages the parsing of latin phrases.
 """
 
-from language.abc import Phrase
+from language.abc import Language, Phrase
+
+Latin = Language("latin")
 
 
 class LatinPhrase(Phrase):
@@ -28,5 +30,5 @@ class LatinPhrase(Phrase):
     """
 
     def __init__(self, phrase_description: str):
-        super(LatinPhrase, self).__init__(phrase_description)
+        super(LatinPhrase, self).__init__(phrase_description, Latin)
         # todo parse phrase description
