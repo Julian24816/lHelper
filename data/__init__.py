@@ -19,41 +19,13 @@
 Provides data to other modules of lHelper.
 """
 
-from data.databaseManager import *
-from data.userDatabaseManager import *
-
-from typing import List
-
-
-def get_user_names() -> List[str]:
-    """
-    Returns all available user_names.
-    :return: a list of names
-    """
-    from os import listdir
-    from re import match
-
-    names = []
-    for file_name in listdir("."):
-        if match(".+[.]sqlite3", file_name):
-            names.append(file_name[:-8])
-    return names
-
-
-def set_user(name: str):
-    """
-    Sets the active user.
-    :param name: the users name
-    """
-    global user_name, user_database_manager
-    user_name = name
-    user_database_manager = UserDatabaseManager(name)
+from data.databaseManager import DatabaseManager
+from data.udmHandler import UDMHandler
 
 
 database_manager = DatabaseManager("data.sqlite3")
 
-user_name = None
-user_database_manager = None
-
-if len(get_user_names()) == 1:
-    set_user(get_user_names()[0])
+if len(UDMHandler.get_user_names()) == 1:
+    udm_handler = UDMHandler(UDMHandler.get_user_names()[0])
+else:
+    udm_handler = UDMHandler(None)

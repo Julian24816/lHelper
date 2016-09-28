@@ -27,7 +27,7 @@ parser.add_argument("-t", "--tui", action="store_const", const="tui", default="g
 ui_choice = parser.parse_args().ui
 if ui_choice == "tui":
     import tui
-    tui.main()
+    tui.main("julian")
 elif ui_choice == "gui":
     import main
     main.main()
