@@ -23,7 +23,7 @@ from data.userDatabaseManager import UserDatabaseManager
 from typing import List
 
 
-class NoUserError(Exception):
+class NoUserError(RuntimeError):
     """
     Exception raised when a UserDatabaseManager is requested while no user is specified.
     """

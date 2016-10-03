@@ -1,7 +1,7 @@
 # coding=utf-8
 
 """
-moves the word_data to a new database
+moves the word_data to the new database
 """
 
 from data import database_manager, udm_handler
@@ -9,6 +9,8 @@ from data.oldDatabaseManager import OldDatabaseManager, OldUserDatabaseManager
 from data.oldClasses import Translation
 from tui.menu import choose_option
 from typing import Tuple
+
+udm_handler.set_user("julian")
 
 old_database_manager = OldDatabaseManager("old_data.sqlite3")
 old_user_database_manager = OldUserDatabaseManager("old_julian", old_database_manager)
@@ -44,7 +46,7 @@ for used_card in sorted(old_user_database_manager.get_all_cards(),
     print("translations:")
     print(*translations, sep="\n")
 
-    if choose_option(["y", ""], "edit? ")[0] == "y":
+    if False:  # choose_option(["y", ""], "edit? ")[0] == "y":
         new_translations = []
 
         for translation in translations:
@@ -66,7 +68,7 @@ for used_card in sorted(old_user_database_manager.get_all_cards(),
         translations = new_translations
         print(*translations, sep="\n")
 
-    if choose_option(["y", "n"], "input to database? ")[0] == "n":
+    if False:  # choose_option(["y", "n"], "input to database? ")[0] == "n":
         continue
 
     card_id = database_manager.add_card(translations)

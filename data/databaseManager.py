@@ -253,6 +253,7 @@ class DatabaseManager(DatabaseOpenHelper):
             db = self.get_connection()
             cur = db.cursor()
             self.add_card_to_group(card_id, group_name, cur)
+            db.commit()
             db.close()
 
         # a cursor was passed on
