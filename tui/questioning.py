@@ -21,6 +21,7 @@ Call question_all(<List[data.Card]>) to question the user over these vocabs.
 """
 
 from data.cardManager import CardManager, Card
+from language import German, Latin
 
 from typing import Iterable
 from random import choice
@@ -111,21 +112,23 @@ def question(card: Card) -> bool:
 
     synonyms = {}
     translations = {}
-    for phrase1, language1, phrase2, language2 in card.get_translations():
+    for phrase1, phrase2 in card.get_translations():
+
+        phrase1, language1, phrase2, language2 = phrase1.phrase, phrase1.language, phrase2.phrase, phrase2.language
 
         # switch pairs if pair 1 is a german phrase
-        if language1 == "german":
+        if language1 == German:
             phrase1, language1, phrase2, language2 = phrase2, language2, phrase1, language1
 
         # german-german
-        if language1 == "german":
+        if language1 == German:
             continue
 
         # latin-?
-        elif language1 == "latin":
+        elif language1 == Latin:
 
             # latin-latin == synonym
-            if language2 == "latin":
+            if language2 == Latin:
 
                 # if one of the synonyms is already registered ...
                 for phrase in synonyms:
@@ -149,7 +152,7 @@ def question(card: Card) -> bool:
                     synonyms[phrase1].add(phrase2)
 
             # latin-german == translation
-            elif language2 == "german":
+            elif language2 == German:
 
                 # if there's a synonym for phrase1 registered already, use that phrase instead
                 for phrase in synonyms:
