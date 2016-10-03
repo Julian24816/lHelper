@@ -40,9 +40,11 @@ class LatinPhrase(Phrase):
         Parses a phrase string
         :param phrase: the phrase to parse
         """
+        return LatinPhrase(phrase)
         # todo implement LatinPhrase.parse_phrase
 
 
+'''
 class WordGroup(LatinPhrase):
     """
     A group of latin words.
@@ -137,3 +139,4 @@ class Interjection(NotInflectedWord):
     """
     A latin interjection.
     """
+'''
