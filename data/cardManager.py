@@ -173,6 +173,10 @@ class CardManager:
             else:
                 due_cards[1].append(card)
 
+        if len(due_cards[0]) < cls.CARD_PORTION < len(due_cards[0])+len(due_cards[1]) and len(due_cards[1]) > 0:
+            print("Selecting {} of {} cards.".format(max(cls.CARD_PORTION, len(due_cards[0])),
+                                                     len(due_cards[0])+len(due_cards[1])))
+
         # limit card amount by using all cards in shelf 1 and 2 and using as much as possible random others
         while len(due_cards[0]) < cls.CARD_PORTION and len(due_cards[1]) > 0:
             card = choice(due_cards[1])
