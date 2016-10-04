@@ -85,10 +85,6 @@ class MenuOptionsRegistry:
             except Exception as e:
                 print(e)
                 print("Please contact support.")
-            except BaseException as e:
-                print(e)
-                print("Please contact support.")
-                raise MainloopExit
         else:
             raise KeyError("command not registered")
 
