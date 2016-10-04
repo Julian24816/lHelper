@@ -77,6 +77,12 @@ class Card:
         """
         return self.translations
 
+    def get_groups(self):
+        """
+        :return: the groups the card is in
+        """
+        return self.groups
+
 
 class CardGroup:
     """

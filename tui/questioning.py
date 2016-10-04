@@ -173,6 +173,9 @@ def question(card: Card) -> bool:
     #######
     # question user over the data
 
+    groups = card.get_groups()
+    print("[{}, {}]".format(card.get_id(), ", ".join(groups) if groups else "None"))
+
     all_answers_correct = True
 
     already_asked = None
