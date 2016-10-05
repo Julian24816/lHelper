@@ -81,6 +81,7 @@ class MenuOptionsRegistry:
             try:
                 cls.__registry[command](*args)
             except TypeError as e:
+                raise e
                 print(cls.__registry[command].usage_notice())
             except Exception as e:
                 print(e)

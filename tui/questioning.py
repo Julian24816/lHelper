@@ -114,21 +114,19 @@ def question(card: Card) -> bool:
     translations = {}
     for phrase1, phrase2 in card.get_translations():
 
-        phrase1, language1, phrase2, language2 = phrase1.phrase, phrase1.language, phrase2.phrase, phrase2.language
-
         # switch pairs if pair 1 is a german phrase
-        if language1 == German:
-            phrase1, language1, phrase2, language2 = phrase2, language2, phrase1, language1
+        if phrase1.language == German:
+            phrase1, phrase2 = phrase2, phrase1
 
         # german-german
-        if language1 == German:
+        if phrase1.language == German:
             continue
 
         # latin-?
-        elif language1 == Latin:
+        elif phrase1.language == Latin:
 
             # latin-latin == synonym
-            if language2 == Latin:
+            if phrase2.language == Latin:
 
                 # if one of the synonyms is already registered ...
                 for phrase in synonyms:
@@ -152,7 +150,7 @@ def question(card: Card) -> bool:
                     synonyms[phrase1].add(phrase2)
 
             # latin-german == translation
-            elif language2 == German:
+            elif phrase2.language == German:
 
                 # if there's a synonym for phrase1 registered already, use that phrase instead
                 for phrase in synonyms:
@@ -163,54 +161,57 @@ def question(card: Card) -> bool:
                 if phrase1 not in translations:
                     translations[phrase1] = set()
 
-                translations[phrase1].add(phrase2)
+                translations[phrase1].add(phrase2.phrase)
 
             else:
-                raise Exception("Unknown language: {}".format(language2))
+                raise Exception("Unknown language: {}".format(phrase2.language))
         else:
-            raise Exception("Unknown language: {}".format(language1))
+            raise Exception("Unknown language: {}".format(phrase1.language))
 
     #######
     # question user over the data
 
     groups = card.get_groups()
-    print("[{}, {}]".format(card.get_id(), ", ".join(groups) if groups else "None"))
+    print("[{}, {}, {}]".format(card.get_id(), card.get_shelf(), ", ".join(groups) if groups else "None"))
 
     all_answers_correct = True
 
-    already_asked = None
+    last_word = None
 
     for phrase in translations:
 
-        # split into root_forms and context
-        m = match("(.+[^,]) ", phrase)  # stuff + no comma + space + stuff
-        if m:
-            root_forms, context = phrase[:len(m.group())], phrase[len(m.group()):]
-        else:
-            root_forms, context = phrase, ""
+        if phrase.is_word():
+            # don't print the root_forms again if they were already asked for
+            if last_word and last_word.root_forms != phrase.root_forms:
 
-        # don't print the root_forms again if they were already asked for
-        if already_asked != root_forms:
-            # print synonyms
-            if phrase in synonyms:
-                for synonym in synonyms[phrase]:
-                    print(synonym, "/", end=" ")
+                # print synonyms
+                if phrase in synonyms:
+                    for synonym in synonyms[phrase]:
+                        print(synonym, "/", end=" ")
 
-            # if the root_forms belong to a verb with at least 3 forms, ask user for the root_forms
-            if match(".+re, .+o, .+|.+i, .+or, .+", root_forms):
-                infinitive, *rest = map(lambda word: word.strip(" "), root_forms.split(","))
-                if input(infinitive+", ") != ", ".join(rest):
-                    all_answers_correct = False
-                    print(", ".join([infinitive]+rest), "would be correct!")
+                # if the phrase is a verb with at least 3 root_forms, ask the user for the root_forms
+                if phrase.is_verb() and match("\w+, \w+, .+", phrase.root_forms):
+                    infinitive, *rest = (word.strip(" ") for word in phrase.root_forms.split(","))
+                    if input(infinitive + ", ").strip(" ") != ", ".join(rest):
+                        all_answers_correct = False
+                        print(", ".join([infinitive] + rest), "would be correct!")
 
-            # otherwise just print them out
+                # otherwise just print the root_forms
+                else:
+                    print(phrase.root_forms, end="")
+
             else:
-                print(phrase, end="")
+                last_word = phrase
 
-            already_asked = root_forms
+            # ask for translations:
+            res = input(phrase.context+": ")
 
-        # ask for translations:
-        answer = set(map(lambda word: word.strip(" "), input(": ").split(",")))
+        # phrase is no Word -> WordGroup
+        else:
+            # ask for translations:
+            res = input(phrase.phrase+": ")
+
+        answer = set(word.strip(" ") for word in res.split(","))
 
         if "" in answer:
             answer.remove("")
@@ -222,7 +223,8 @@ def question(card: Card) -> bool:
                 translations_missing = True
                 print("missing:", ", ".join(translations[phrase] - answer))
             if answer - translations[phrase]:  # wrong translations
-                print("wrong:"+("  " if translations_missing else ""), ", ".join(answer - translations[phrase]))
+                print("wrong:"+("  " if translations_missing else "")
+                      , ", ".join(answer - translations[phrase]))
 
     #######
     # return True/False according to answers

@@ -56,3 +56,9 @@ class Phrase:
         :return: a Phrase object
         """
         raise NotImplementedError
+
+    def __eq__(self, other):
+        return isinstance(other, Phrase) and self.phrase == other.phrase and self.language == other.language
+
+    def __hash__(self):
+        return hash(self.phrase)

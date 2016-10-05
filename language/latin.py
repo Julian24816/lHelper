@@ -40,11 +40,23 @@ class LatinPhrase(Phrase):
         Parses a phrase string
         :param phrase: the phrase to parse
         """
-        return LatinPhrase(phrase)
-        # todo implement LatinPhrase.parse_phrase
+        if phrase.find("...") != -1:
+            return WordGroup(phrase)
+
+        m = match("(\w+re|\w+ri)(, \w+)+( sum)?", phrase)
+        if m:
+            return Verb(phrase[:len(m.group())], phrase[len(m.group()):])
+
+        # todo parse for other kinds of words
+        return WordGroup(phrase)
+
+    def is_word(self):
+        """
+        :return: True if self is word.
+        """
+        return isinstance(self, Word)
 
 
-'''
 class WordGroup(LatinPhrase):
     """
     A group of latin words.
@@ -55,6 +67,16 @@ class Word(LatinPhrase):
     """
     A latin word.
     """
+    def __init__(self, root_forms: str, context: str):
+        self.root_forms = root_forms.strip(" ")
+        self.context = context.strip(" ")
+        super(Word, self).__init__(root_forms + " " + context)
+
+    def is_verb(self):
+        """
+        :return: True if self is a Verb.
+        """
+        return isinstance(self, Verb)
 
 
 class InflectedWord(Word):
@@ -69,6 +91,7 @@ class Verb(InflectedWord):
     """
 
 
+'''
 class Noun(InflectedWord):
     """
     A latin noun.

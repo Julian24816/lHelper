@@ -95,7 +95,7 @@ def add_cards():
         else:
             translations.append(["{} {}".format(rf, context), "latin", choice, "german"])
 
-        # todo enable synonyms
+        # todo enable input of synonyms
 
         # ask for next choice
         if rf is None:
