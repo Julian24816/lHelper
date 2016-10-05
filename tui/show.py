@@ -19,6 +19,8 @@
 Provides methods for the 'show' command.
 """
 
+from data import database_manager
+
 
 def show_group(group_name: str):
     """
@@ -26,5 +28,13 @@ def show_group(group_name: str):
     :param group_name: the groups name
     """
 
-    print("WIP")
-    # todo implement show_group
+    # assert the group exists
+    if not database_manager.group_name_exists(group_name):
+        print("Group {} does not exist.".format(group_name))
+        return
+
+    print("Group {}:".format(group_name))
+    for card_id, translations in database_manager.load_group(database_manager.get_group_id_for_name(group_name))[2]:
+        print()
+        for translation in translations:
+            print("[{}] {} -> {}".format(card_id, translation[0], translation[2]))  # phrase1, phrase2
