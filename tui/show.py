@@ -33,8 +33,7 @@ def show_group(group_name: str):
         print("Group {} does not exist.".format(group_name))
         return
 
-    print("Group {}:".format(group_name))
     for card_id, translations in database_manager.load_group(database_manager.get_group_id_for_name(group_name))[2]:
-        print()
+        print("[{}]".format(card_id))
         for translation in translations:
-            print("[{}] {} -> {}".format(card_id, translation[0], translation[2]))  # phrase1, phrase2
+            print("{} -> {}".format(translation[0], translation[2]))  # phrase1, phrase2
