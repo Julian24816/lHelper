@@ -25,4 +25,4 @@ def main():
     """
     The GUIs main method.
     """
-    print("GUI not yet implemented. Run the programm with the -t flag to start the text based UI")
+    print("GUI not yet implemented. Run the program with the -t flag to start the text based UI")
