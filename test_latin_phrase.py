@@ -16,22 +16,12 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides the @Singleton decorator which makes classes singletons.
+Responsible for all database interactions not concerning user data.
+Instantiate DatabaseManager to get access to the functionality.
 """
 
+import data
+from language import LatinPhrase
 
-class Singleton:
-    """
-    Makes a class a singleton.
-    Use as a Decorator for your classes.
-    """
-
-    def __init__(self, cls, *args):
-        if args: print(cls, args)
-        self.cls = cls
-        self.instance = None
-
-    def __call__(self, *args, **kwargs):
-        if self.instance is None:
-            self.instance = self.cls(*args, **kwargs)
-        return self.instance
+for phrase in data.database_manager.get_all_phrases("latin"):
+    LatinPhrase(phrase)

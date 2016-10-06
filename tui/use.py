@@ -16,15 +16,17 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides methods for the 'show' command.
+Provides methods for the 'use group' command.
+Call use_group(group_name) to assert that all cards in group <group_name> are used by the current user.
 """
 
-from data import database_manager
+from data import database_manager, udm_handler
+from data.cardManager import CardManager
 
 
-def show_group(group_name: str):
+def use_group(group_name: str):
     """
-    Prints all cards in card-group group_name.
+    Asserts that all cards in the given group are being used by the user.
     :param group_name: the groups name
     """
 
@@ -33,7 +35,7 @@ def show_group(group_name: str):
         print("Group {} does not exist.".format(group_name))
         return
 
-    for card_id, translations in database_manager.load_group(database_manager.get_group_id_for_name(group_name))[2]:
-        print("[{}]".format(card_id))
-        for translation in translations:
-            print("{} -> {}".format(translation[0], translation[2]))  # phrase1, phrase2
+    for card_id, _ in database_manager.load_group(database_manager.get_group_id_for_name(group_name))[2]:
+        if not udm_handler.get_udm().card_is_used(card_id):
+            udm_handler.get_udm().add_card(card_id, CardManager.DEFAULT_SHELF, "today")
+            print("Added card {} to shelf {}".format(card_id, CardManager.DEFAULT_SHELF))

@@ -16,13 +16,26 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides a graphical UI to lHelper.
-Call :method:'main' to initialize.
+Manages the parsing of german phrases.
 """
 
+from language.abc import Language, Phrase
 
-def main():
+German = Language("german")
+
+
+class GermanPhrase(Phrase):
     """
-    The GUIs main method.
+    Holds a German phrase.
     """
-    print("GUI not yet implemented. Run the program with the -t flag to start the text based UI")
+    def __init__(self, phrase_description: str):
+        super(GermanPhrase, self).__init__(phrase_description, German)
+
+    @staticmethod
+    def parse_phrase(phrase: str):
+        """
+        Parses a phrase string into a german phrase.
+        :param phrase: the phrase string.
+        :return: the Phrase
+        """
+        return GermanPhrase(phrase)

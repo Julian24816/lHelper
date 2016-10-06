@@ -253,6 +253,7 @@ class DatabaseManager(DatabaseOpenHelper):
             db = self.get_connection()
             cur = db.cursor()
             self.add_card_to_group(card_id, group_name, cur)
+            db.commit()
             db.close()
 
         # a cursor was passed on
@@ -489,3 +490,16 @@ class DatabaseManager(DatabaseOpenHelper):
                                            + " JOIN " + TABLE_CARD_GROUP + " AS cg ON cg." + GROUP_ID + "=g." + GROUP_ID
                                            + " WHERE cg." + CARD_ID + "=?",
                                            (card_id,)).fetchall()))
+
+    def get_all_phrases(self, language: str) -> List[str]:
+        """
+        Returns all phrases of a language.
+        :param language: the language of the phrases
+        :return: a list of strings
+        """
+        db = self.get_connection()
+        phrases = list(map(lambda row: row[0],
+                           db.execute("select " + PHRASE_DESCRIPTION + " FROM " + TABLE_PHRASE
+                                      + " WHERE " + PHRASE_LANGUAGE + "=?;", (language,)).fetchall()))
+        db.close()
+        return phrases

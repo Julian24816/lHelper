@@ -16,13 +16,11 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides a graphical UI to lHelper.
-Call :method:'main' to initialize.
+Provides language specific classes.
 """
 
+from language.abc import Phrase
+from language.latin import LatinPhrase, Latin
+from language.german import GermanPhrase, German
 
-def main():
-    """
-    The GUIs main method.
-    """
-    print("GUI not yet implemented. Run the program with the -t flag to start the text based UI")
+phrase_classes = {str(Latin): LatinPhrase, str(German): GermanPhrase}

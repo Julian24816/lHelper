@@ -21,7 +21,6 @@ Responsible for all database interactions concerning user data.
 
 from data.databaseOpenHelper import *
 from data.userDatabaseConstants import *
-from os.path import join
 from time import strftime
 
 from typing import List, Tuple
@@ -55,7 +54,7 @@ class UserDatabaseManager(DatabaseOpenHelper):
     #######
     # add entries to the database
 
-    def add_card(self, card_id: int, shelf: int, due_date: str, cursor: Cursor = None):
+    def add_card(self, card_id: int, shelf: int, due_date: str = "today", cursor: Cursor = None):
         """
         Tries to add a card to the database.
         :raises ValueError: if the card already exists
@@ -77,6 +76,9 @@ class UserDatabaseManager(DatabaseOpenHelper):
         else:
             if self.card_is_used(card_id, cursor):
                 raise ValueError("Card {} is already used by user {}.".format(card_id, self.user_name))
+
+            if due_date == "today":
+                due_date = strftime("%Y-%m-%d")
 
             cursor.execute("INSERT INTO " + TABLE_USED_CARD + "("
                            + ",".join((CARD_ID, USED_CARD_SHELF, USED_CARD_DUE_DATE))

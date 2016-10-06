@@ -21,18 +21,19 @@ Instantiate CardManager to get access to the functionality.
 """
 
 from data import database_manager, udm_handler
+from language import Phrase, phrase_classes
 from random import choice
 from time import localtime, strftime, time
 
 from typing import Iterable, List, Set, Tuple
-Translation = Tuple[str, str, str, str]
 
 
 class Card:
     """
     Holds a vocabulary Card.
     """
-    def __init__(self, card_id: int, shelf: int, due_date: str, translations: List[Translation], groups: Iterable[str]):
+    def __init__(self, card_id: int, shelf: int, due_date: str, translations: List[Tuple[str, str, str, str]],
+                 groups: Iterable[str]):
         """
         Initialize the Card.
         :param card_id: the cards id in the database.
@@ -44,7 +45,12 @@ class Card:
         self.card_id = card_id
         self.shelf = shelf
         self.due_date = due_date
-        self.translations = translations
+
+        self.translations = []
+        for phrase1, language1, phrase2, language2 in translations:
+            self.translations.append((phrase_classes[language1].parse_phrase(phrase1),
+                                      phrase_classes[language2].parse_phrase(phrase2)))
+
         self.groups = set(groups)
 
     def get_id(self):
@@ -65,11 +71,17 @@ class Card:
         """
         return self.due_date
 
-    def get_translations(self) -> List[Translation]:
+    def get_translations(self) -> List[Tuple[Phrase, Phrase]]:
         """
         :return: the translations on the card
         """
         return self.translations
+
+    def get_groups(self):
+        """
+        :return: the groups the card is in
+        """
+        return self.groups
 
 
 class CardGroup:
@@ -160,6 +172,10 @@ class CardManager:
                 due_cards[0].append(card)
             else:
                 due_cards[1].append(card)
+
+        if len(due_cards[0]) < cls.CARD_PORTION < len(due_cards[0])+len(due_cards[1]) and len(due_cards[1]) > 0:
+            print("Selecting {} of {} cards.".format(max(cls.CARD_PORTION, len(due_cards[0])),
+                                                     len(due_cards[0])+len(due_cards[1])))
 
         # limit card amount by using all cards in shelf 1 and 2 and using as much as possible random others
         while len(due_cards[0]) < cls.CARD_PORTION and len(due_cards[1]) > 0:

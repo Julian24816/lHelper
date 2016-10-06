@@ -98,8 +98,10 @@ class Add(Command):
     description = "starts the adding cycle"
 
     def __init__(self, mode: str):
-        print("WIP")
-        # todo implement add
+        if mode == "cards":
+            add_cards()
+        else:
+            print("unknown mode:", mode)
 
 
 @MenuOptionsRegistry

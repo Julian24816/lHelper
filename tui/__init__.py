@@ -25,8 +25,9 @@ from tui.menu import choose_option, Command, MenuOptionsRegistry, MainloopExit
 from tui.lookup import lookup
 from tui.questioning import question_all_due, question_all_group
 from tui.show import show_group
+from tui.use import use_group
 
-import tui.data_commands
+# import tui.data_commands
 
 from data import database_manager, udm_handler
 
@@ -142,8 +143,7 @@ class Use(Command):
     description = "put all cards in card-group group_name in shelf 1"
 
     def __init__(self, group_name: str):
-        print("WIP")
-        # todo implement use
+        use_group(group_name)
 
 
 @MenuOptionsRegistry
