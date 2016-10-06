@@ -22,12 +22,12 @@ lHelper project: python application for helping me learn Latin
 import argparse
 from sys import argv
 from os import chdir
-from os.path import dirname
+from os.path import dirname, abspath
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 __author__ = "Julian Mueller"
 
-chdir(dirname(argv[0]))
+chdir(dirname(abspath(argv[0])))
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--tui", action="store_const", const="tui", default="gui", dest="ui",
