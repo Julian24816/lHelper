@@ -20,8 +20,14 @@ lHelper project: python application for helping me learn Latin
 """
 
 import argparse
+from sys import argv
+from os import chdir
+from os.path import dirname
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
+__author__ = "Julian Mueller"
+
+chdir(dirname(argv[0]))
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--tui", action="store_const", const="tui", default="gui", dest="ui",
