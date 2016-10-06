@@ -21,7 +21,7 @@ lHelper project: python application for helping me learn Latin
 
 import argparse
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--tui", action="store_const", const="tui", default="gui", dest="ui",
