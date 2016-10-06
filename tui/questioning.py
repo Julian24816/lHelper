@@ -182,7 +182,7 @@ def question(card: Card) -> bool:
 
         if phrase.is_word():
             # don't print the root_forms again if they were already asked for
-            if last_word and last_word.root_forms != phrase.root_forms:
+            if last_word and last_word.root_forms != phrase.root_forms or last_word is None:
 
                 # print synonyms
                 if phrase in synonyms:
