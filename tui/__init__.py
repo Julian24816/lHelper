@@ -178,15 +178,16 @@ def mainloop():
 prompt = "$ "
 
 
-def main(user: str = None):
+def main(version: str, user: str = None):
     """
     The TextUIs main method.
+    :param version: the programs version to be displayed
     :param user: the user that should be active on start
     """
-    print("""lHelper Copyright (C) 2016 Julian Mueller
+    print("""lHelper {} Copyright (C) 2016 Julian Mueller
 This program comes with ABSOLUTELY NO WARRANTY; for details type 'show w'.
 This is free software, and you are welcome to redistribute it
-under certain conditions; type 'show c' for details.""")
+under certain conditions; type 'show c' for details.""".format(version))
 
     if user:
         udm_handler.set_user(user)

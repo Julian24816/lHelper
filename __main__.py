@@ -21,13 +21,15 @@ lHelper project: python application for helping me learn Latin
 
 import argparse
 
+__version__ = "1.0.0"
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--tui", action="store_const", const="tui", default="gui", dest="ui",
                     help="Run the program with a TextUI instead of a GUI.")
 ui_choice = parser.parse_args().ui
 if ui_choice == "tui":
     import tui
-    tui.main("julian")
+    tui.main(__version__)
 elif ui_choice == "gui":
     import main
     main.main()
