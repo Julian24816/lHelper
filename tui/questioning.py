@@ -200,8 +200,7 @@ def question(card: Card) -> bool:
                 else:
                     print(phrase.root_forms, end="")
 
-            else:
-                last_word = phrase
+            last_word = phrase
 
             # ask for translations:
             res = input(phrase.context+": ")
