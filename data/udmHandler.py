@@ -51,7 +51,7 @@ class UDMHandler:
 
         names = []
         for file_name in listdir("."):
-            if match(".+[.]sqlite3", file_name):
+            if match(".+[.]sqlite3", file_name) and not file_name == "data.sqlite3":
                 names.append(file_name[:-8])
         return names
 

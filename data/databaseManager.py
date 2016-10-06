@@ -35,12 +35,12 @@ class DatabaseManager(DatabaseOpenHelper):
     Responsible for all database interactions not concerning user data.
     """
 
-    def __init__(self, db_name: str):
+    def __init__(self):
         """
         Initialize the DatabaseManager to use the database db_name
         :param db_name: the filename of the sqlite3-database
         """
-        super().__init__(db_name)
+        super().__init__("data.sqlite3")
 
         # init database ids with default values ...
         self.phrase_id = 0

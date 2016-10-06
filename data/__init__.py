@@ -23,7 +23,7 @@ from data.databaseManager import DatabaseManager
 from data.udmHandler import UDMHandler
 
 
-database_manager = DatabaseManager("data.sqlite3")
+database_manager = DatabaseManager()
 
 if len(UDMHandler.get_user_names()) == 1:
     udm_handler = UDMHandler(UDMHandler.get_user_names()[0])
