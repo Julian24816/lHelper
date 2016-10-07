@@ -184,7 +184,7 @@ def main(version: str, user: str = None):
     :param version: the programs version to be displayed
     :param user: the user that should be active on start
     """
-    print("""lHelper {} Copyright (C) 2016 Julian Mueller
+    print("""lHelper v{} Copyright (C) 2016 Julian Mueller
 This program comes with ABSOLUTELY NO WARRANTY; for details type 'show w'.
 This is free software, and you are welcome to redistribute it
 under certain conditions; type 'show c' for details.""".format(version))
