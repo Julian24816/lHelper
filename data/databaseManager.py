@@ -556,13 +556,13 @@ class DatabaseManager(DatabaseOpenHelper):
             if not self.card_exists(card_id):
                 raise ValueError("Card {} does not exist.".format(card_id))
 
+            for translation in edited_translations:
+                self.edit_translation(translation, edited_translations[translation], cursor)
+
             for translation in added_translations:
                 t_id = self.add_translation(translation[0], translation[1], translation[2], translation[3], cursor)
                 cursor.execute("INSERT INTO " + TABLE_CARD + " (" + ",".join((CARD_ID, TRANSLATION_ID))
                                + ") VALUES (?,?);", (card_id, t_id))
-
-            for translation in edited_translations:
-                self.edit_translation(translation, edited_translations[translation], cursor)
 
             for translation in removed_translations:
                 t_id = self.remove_translation(translation, cursor)
