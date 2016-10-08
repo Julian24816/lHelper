@@ -23,7 +23,7 @@ import argparse
 from os import chdir
 from os.path import dirname, abspath
 
-__version__ = "1.0.7"
+__version__ = "1.1.0"
 __author__ = "Julian Mueller"
 
 chdir(dirname(abspath(__file__)))
