@@ -55,6 +55,7 @@ def edit_card(card_id: int):
     added_translations = []
     edited_translations = {}
     removed_translations = []
+    untouched_translations = []
 
     i = 0
     while i <= len(translations):
@@ -62,7 +63,6 @@ def edit_card(card_id: int):
         if i < len(translations):
             res = [el.strip(" ") for el in input("{} > ".format(translations[i])).split(";")]
             phrase1, language1, phrase2, language2 = translations[i]
-            i += 1
         else:
             res = [el.strip(" ") for el in input("add > ").split(";")]
             if not res[0] or res[0] == "r":
@@ -73,6 +73,7 @@ def edit_card(card_id: int):
             raise RuntimeError("to many arguments in edit")
         elif res[0] == "r":
             removed_translations.append(translations[i])
+            i += 1
             continue
 
         if len(res) >= 4 and res[3]:
@@ -85,12 +86,18 @@ def edit_card(card_id: int):
             phrase1 = res[0]
 
         if i < len(translations):
-            edited_translations[translations[i]] = (phrase1, language1, phrase2, language2)
+            if (phrase1, language1, phrase2, language2) != translations[i]:  # translation was edited
+                edited_translations[translations[i]] = (phrase1, language1, phrase2, language2)
+            else:
+                untouched_translations.append(translations[i])
+            i += 1
         else:
             added_translations.append((phrase1, language1, phrase2, language2))
 
     # print new translations
     print("new:")
+    if untouched_translations:
+        print(*untouched_translations, sep="\n")
     if edited_translations:
         print(*edited_translations.values(), sep="\n")
     if added_translations:

@@ -334,6 +334,30 @@ class DatabaseManager(DatabaseOpenHelper):
             return cursor.execute("SELECT * FROM " + TABLE_GROUP + " WHERE " + GROUP_NAME + "=?;",
                                   (group_name,)).fetchone() is not None
 
+    def phrase_exists(self, phrase_description: str, language: str, cursor: Cursor = None):
+        """
+        Checks whether a group_name exists.
+        :param phrase_description: the phrases description
+        :param language: the phrases language
+        :param cursor: the cursor to be used to access the database
+        :return: True/False
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            presence = self.phrase_exists(phrase_description, language, cur)
+            db.close()
+            return presence
+
+        # a cursor was passed on
+        else:
+            return cursor.execute("SELECT * FROM " + TABLE_PHRASE
+                                  + " WHERE " + PHRASE_DESCRIPTION + "=? AND " + PHRASE_LANGUAGE + "=?;",
+                                  (phrase_description, language)).fetchone() is not None
+
+
     #######
     # retrieve entries from the database
 
@@ -564,21 +588,24 @@ class DatabaseManager(DatabaseOpenHelper):
 
         # a cursor was passed on
         else:
+            if not self.phrase_exists(old_translation[0], old_translation[1]) \
+                    or not self.phrase_exists(old_translation[2], old_translation[3]):
+                raise ValueError("old translation does not exist.")
+
+            phrase_1 = self.add_phrase(old_translation[0], old_translation[1], cursor)
+            phrase_2 = self.add_phrase(old_translation[2], old_translation[3], cursor)
+
             # update phrase 1
             if old_translation[0] != new_translation[0] or old_translation[1] != new_translation[1]:
                 cursor.execute("UPDATE " + TABLE_PHRASE + " SET " + PHRASE_DESCRIPTION + "=?," + PHRASE_LANGUAGE + "=?"
                                + " WHERE " + PHRASE_ID + "=?;",
-                               (new_translation[0], new_translation[1],
-                                # load the phrase_id
-                                self.add_phrase(old_translation[0], old_translation[1])))
+                               (new_translation[0], new_translation[1], phrase_1))
 
             # update phrase 2
             if old_translation[2] != new_translation[2] or old_translation[3] != new_translation[3]:
                 cursor.execute("UPDATE " + TABLE_PHRASE + " SET " + PHRASE_DESCRIPTION + "=?," + PHRASE_LANGUAGE + "=?"
                                + " WHERE " + PHRASE_ID + "=?;",
-                               (new_translation[2], new_translation[3],
-                                # load the phrase_id
-                                self.add_phrase(old_translation[2], old_translation[3])))
+                               (new_translation[2], new_translation[3], phrase_2))
 
     def remove_translation(self, translation: Translation, cursor: Cursor = None):
         """
