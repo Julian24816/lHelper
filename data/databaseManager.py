@@ -23,7 +23,7 @@ Instantiate DatabaseManager to get access to the functionality.
 from data.databaseOpenHelper import *
 from data.databaseConstants import *
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 
 Translation = Tuple[str, str, str, str]
 Card = Tuple[int, List[Translation]]
@@ -38,7 +38,6 @@ class DatabaseManager(DatabaseOpenHelper):
     def __init__(self):
         """
         Initialize the DatabaseManager to use the database db_name
-        :param db_name: the filename of the sqlite3-database
         """
         super().__init__("data.sqlite3")
 
@@ -503,3 +502,104 @@ class DatabaseManager(DatabaseOpenHelper):
                                       + " WHERE " + PHRASE_LANGUAGE + "=?;", (language,)).fetchall()))
         db.close()
         return phrases
+
+    #######
+    # update entries in the database
+
+    def update_card(self, card_id: int,
+                    added_translations: List[Translation],
+                    edited_translations: Dict[Translation, Translation],
+                    removed_translations: List[Translation],
+                    cursor: Cursor = None):
+        """
+        Updates a card in the database.
+        :param card_id: the cards_id
+        :param added_translations: the translations that were added to the card
+        :param edited_translations: the translations that were edited as a before:after pair
+        :param removed_translations: the translation that were removed from the card
+        :param cursor: the cursor to be used to access the database
+        """
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            self.update_card(card_id, added_translations, edited_translations, removed_translations, cur)
+            db.commit()
+            db.close()
+
+        # a cursor was passed on
+        else:
+            if not self.card_exists(card_id):
+                raise ValueError("Card {} does not exist.".format(card_id))
+
+            for translation in added_translations:
+                t_id = self.add_translation(translation[0], translation[1], translation[2], translation[3], cursor)
+                cursor.execute("INSERT INTO " + TABLE_CARD + " (" + ",".join((CARD_ID, TRANSLATION_ID))
+                               + ") VALUES (?,?);", (card_id, t_id))
+
+            for translation in edited_translations:
+                self.edit_translation(translation, edited_translations[translation], cursor)
+
+            for translation in removed_translations:
+                t_id = self.remove_translation(translation, cursor)
+                cursor.execute("DELETE FROM " + TABLE_CARD + " WHERE " + CARD_ID + "=? AND " + TRANSLATION_ID + "=?",
+                               (card_id, t_id))
+
+            self.remove_obsolete_phrases(cursor)
+
+    def edit_translation(self, old_translation: Translation, new_translation:Translation, cursor: Cursor = None):
+        """
+        Edits a translation.
+        :param old_translation: the old data
+        :param new_translation: the new data
+        :param cursor: the cursor to be used to access the database
+        """
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            self.edit_translation(old_translation, new_translation, cur)
+            db.commit()
+            db.close()
+
+        # a cursor was passed on
+        else:
+            pass
+        # todo implement edit_translation
+
+    def remove_translation(self, translation: Translation, cursor: Cursor = None):
+        """
+        Removes a translation from the database and returns its previous id.
+        :param translation: the translation data
+        :param cursor: the cursor to used to access the database
+        :return: the translations previous id
+        """
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            t_id = self.remove_translation(translation, cur)
+            db.commit()
+            db.close()
+            return t_id
+
+        # a cursor was passed on
+        else:
+            return None  # todo implement remove_translation
+
+    def remove_obsolete_phrases(self, cursor: Cursor = None):
+        """
+        Removes phrases that are not part of a translation from the database
+        :param cursor: the cursor to be used to access the database
+        """
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            self.remove_obsolete_phrases(cur)
+            db.commit()
+            db.close()
+
+        # a cursor was passed on
+        else:
+            pass  # todo implement remove obsolete phrases
