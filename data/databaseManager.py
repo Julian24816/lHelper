@@ -547,7 +547,7 @@ class DatabaseManager(DatabaseOpenHelper):
 
             self.remove_obsolete_phrases(cursor)
 
-    def edit_translation(self, old_translation: Translation, new_translation:Translation, cursor: Cursor = None):
+    def edit_translation(self, old_translation: Translation, new_translation: Translation, cursor: Cursor = None):
         """
         Edits a translation.
         :param old_translation: the old data
@@ -564,8 +564,21 @@ class DatabaseManager(DatabaseOpenHelper):
 
         # a cursor was passed on
         else:
-            pass
-        # todo implement edit_translation
+            # update phrase 1
+            if old_translation[0] != new_translation[0] or old_translation[1] != new_translation[1]:
+                cursor.execute("UPDATE " + TABLE_PHRASE + " SET " + PHRASE_DESCRIPTION + "=?," + PHRASE_LANGUAGE + "=?"
+                               + " WHERE " + PHRASE_ID + "=?;",
+                               (new_translation[0], new_translation[1],
+                                # load the phrase_id
+                                self.add_phrase(old_translation[0], old_translation[1])))
+
+            # update phrase 2
+            if old_translation[2] != new_translation[2] or old_translation[3] != new_translation[3]:
+                cursor.execute("UPDATE " + TABLE_PHRASE + " SET " + PHRASE_DESCRIPTION + "=?," + PHRASE_LANGUAGE + "=?"
+                               + " WHERE " + PHRASE_ID + "=?;",
+                               (new_translation[2], new_translation[3],
+                                # load the phrase_id
+                                self.add_phrase(old_translation[2], old_translation[3])))
 
     def remove_translation(self, translation: Translation, cursor: Cursor = None):
         """
@@ -585,7 +598,12 @@ class DatabaseManager(DatabaseOpenHelper):
 
         # a cursor was passed on
         else:
-            return None  # todo implement remove_translation
+            # get translation id
+            t_id = self.add_translation(translation[0], translation[1], translation[2], translation[3])
+
+            # delete translation
+            cursor.execute("DELETE FROM " + TABLE_TRANSLATION + " WHERE " + TRANSLATION_ID + "=?", (t_id,))
+            return t_id
 
     def remove_obsolete_phrases(self, cursor: Cursor = None):
         """
@@ -602,4 +620,7 @@ class DatabaseManager(DatabaseOpenHelper):
 
         # a cursor was passed on
         else:
-            pass  # todo implement remove obsolete phrases
+            cursor.execute("DELETE FROM " + TABLE_PHRASE + " WHERE " + PHRASE_ID + " NOT IN "
+                           + "(SELECT " + TRANSLATION_PHRASE_1 + " FROM " + TABLE_TRANSLATION + ")"
+                           + " AND " + PHRASE_ID + " NOT IN "
+                           + "(SELECT " + TRANSLATION_PHRASE_2 + " FROM " + TABLE_TRANSLATION + ");")
