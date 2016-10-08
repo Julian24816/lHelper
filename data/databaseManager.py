@@ -23,7 +23,7 @@ Instantiate DatabaseManager to get access to the functionality.
 from data.databaseOpenHelper import *
 from data.databaseConstants import *
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 
 Translation = Tuple[str, str, str, str]
 Card = Tuple[int, List[Translation]]
@@ -38,7 +38,6 @@ class DatabaseManager(DatabaseOpenHelper):
     def __init__(self):
         """
         Initialize the DatabaseManager to use the database db_name
-        :param db_name: the filename of the sqlite3-database
         """
         super().__init__("data.sqlite3")
 
@@ -335,6 +334,30 @@ class DatabaseManager(DatabaseOpenHelper):
             return cursor.execute("SELECT * FROM " + TABLE_GROUP + " WHERE " + GROUP_NAME + "=?;",
                                   (group_name,)).fetchone() is not None
 
+    def phrase_exists(self, phrase_description: str, language: str, cursor: Cursor = None):
+        """
+        Checks whether a group_name exists.
+        :param phrase_description: the phrases description
+        :param language: the phrases language
+        :param cursor: the cursor to be used to access the database
+        :return: True/False
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            presence = self.phrase_exists(phrase_description, language, cur)
+            db.close()
+            return presence
+
+        # a cursor was passed on
+        else:
+            return cursor.execute("SELECT * FROM " + TABLE_PHRASE
+                                  + " WHERE " + PHRASE_DESCRIPTION + "=? AND " + PHRASE_LANGUAGE + "=?;",
+                                  (phrase_description, language)).fetchone() is not None
+
+
     #######
     # retrieve entries from the database
 
@@ -503,3 +526,128 @@ class DatabaseManager(DatabaseOpenHelper):
                                       + " WHERE " + PHRASE_LANGUAGE + "=?;", (language,)).fetchall()))
         db.close()
         return phrases
+
+    #######
+    # update entries in the database
+
+    def update_card(self, card_id: int,
+                    added_translations: List[Translation],
+                    edited_translations: Dict[Translation, Translation],
+                    removed_translations: List[Translation],
+                    cursor: Cursor = None):
+        """
+        Updates a card in the database.
+        :param card_id: the cards_id
+        :param added_translations: the translations that were added to the card
+        :param edited_translations: the translations that were edited as a before:after pair
+        :param removed_translations: the translation that were removed from the card
+        :param cursor: the cursor to be used to access the database
+        """
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            self.update_card(card_id, added_translations, edited_translations, removed_translations, cur)
+            db.commit()
+            db.close()
+
+        # a cursor was passed on
+        else:
+            if not self.card_exists(card_id):
+                raise ValueError("Card {} does not exist.".format(card_id))
+
+            for translation in edited_translations:
+                self.edit_translation(translation, edited_translations[translation], cursor)
+
+            for translation in added_translations:
+                t_id = self.add_translation(translation[0], translation[1], translation[2], translation[3], cursor)
+                cursor.execute("INSERT INTO " + TABLE_CARD + " (" + ",".join((CARD_ID, TRANSLATION_ID))
+                               + ") VALUES (?,?);", (card_id, t_id))
+
+            for translation in removed_translations:
+                t_id = self.remove_translation(translation, cursor)
+                cursor.execute("DELETE FROM " + TABLE_CARD + " WHERE " + CARD_ID + "=? AND " + TRANSLATION_ID + "=?",
+                               (card_id, t_id))
+
+            self.remove_obsolete_phrases(cursor)
+
+    def edit_translation(self, old_translation: Translation, new_translation: Translation, cursor: Cursor = None):
+        """
+        Edits a translation.
+        :param old_translation: the old data
+        :param new_translation: the new data
+        :param cursor: the cursor to be used to access the database
+        """
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            self.edit_translation(old_translation, new_translation, cur)
+            db.commit()
+            db.close()
+
+        # a cursor was passed on
+        else:
+            if not self.phrase_exists(old_translation[0], old_translation[1]) \
+                    or not self.phrase_exists(old_translation[2], old_translation[3]):
+                raise ValueError("old translation does not exist.")
+
+            phrase_1 = self.add_phrase(old_translation[0], old_translation[1], cursor)
+            phrase_2 = self.add_phrase(old_translation[2], old_translation[3], cursor)
+
+            # update phrase 1
+            if old_translation[0] != new_translation[0] or old_translation[1] != new_translation[1]:
+                cursor.execute("UPDATE " + TABLE_PHRASE + " SET " + PHRASE_DESCRIPTION + "=?," + PHRASE_LANGUAGE + "=?"
+                               + " WHERE " + PHRASE_ID + "=?;",
+                               (new_translation[0], new_translation[1], phrase_1))
+
+            # update phrase 2
+            if old_translation[2] != new_translation[2] or old_translation[3] != new_translation[3]:
+                cursor.execute("UPDATE " + TABLE_PHRASE + " SET " + PHRASE_DESCRIPTION + "=?," + PHRASE_LANGUAGE + "=?"
+                               + " WHERE " + PHRASE_ID + "=?;",
+                               (new_translation[2], new_translation[3], phrase_2))
+
+    def remove_translation(self, translation: Translation, cursor: Cursor = None):
+        """
+        Removes a translation from the database and returns its previous id.
+        :param translation: the translation data
+        :param cursor: the cursor to used to access the database
+        :return: the translations previous id
+        """
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            t_id = self.remove_translation(translation, cur)
+            db.commit()
+            db.close()
+            return t_id
+
+        # a cursor was passed on
+        else:
+            # get translation id
+            t_id = self.add_translation(translation[0], translation[1], translation[2], translation[3])
+
+            # delete translation
+            cursor.execute("DELETE FROM " + TABLE_TRANSLATION + " WHERE " + TRANSLATION_ID + "=?", (t_id,))
+            return t_id
+
+    def remove_obsolete_phrases(self, cursor: Cursor = None):
+        """
+        Removes phrases that are not part of a translation from the database
+        :param cursor: the cursor to be used to access the database
+        """
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            self.remove_obsolete_phrases(cur)
+            db.commit()
+            db.close()
+
+        # a cursor was passed on
+        else:
+            cursor.execute("DELETE FROM " + TABLE_PHRASE + " WHERE " + PHRASE_ID + " NOT IN "
+                           + "(SELECT " + TRANSLATION_PHRASE_1 + " FROM " + TABLE_TRANSLATION + ")"
+                           + " AND " + PHRASE_ID + " NOT IN "
+                           + "(SELECT " + TRANSLATION_PHRASE_2 + " FROM " + TABLE_TRANSLATION + ");")

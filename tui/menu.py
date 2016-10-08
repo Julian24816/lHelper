@@ -80,8 +80,12 @@ class MenuOptionsRegistry:
         if cls.has_option(command):
             try:
                 cls.__registry[command](*args)
-            except TypeError as e:
+            # except Exception as e:
+            #     raise e
+            except TypeError:
                 print(cls.__registry[command].usage_notice())
+            except KeyboardInterrupt:
+                print("Command aborted.")
             except Exception as e:
                 print(e)
                 print("Please contact support.")

@@ -203,7 +203,7 @@ def question(card: Card) -> bool:
             last_word = phrase
 
             # ask for translations:
-            res = input(phrase.context+": ")
+            res = input(" {}: ".format(phrase.context))
 
         # phrase is no Word -> WordGroup
         else:
@@ -222,8 +222,8 @@ def question(card: Card) -> bool:
                 translations_missing = True
                 print("missing:", ", ".join(translations[phrase] - answer))
             if answer - translations[phrase]:  # wrong translations
-                print("wrong:"+("  " if translations_missing else "")
-                      , ", ".join(answer - translations[phrase]))
+                print("wrong:"+("  " if translations_missing else ""),
+                      ", ".join(answer - translations[phrase]))
 
     #######
     # return True/False according to answers
