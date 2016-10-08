@@ -54,8 +54,9 @@ class Edit(Command):
         try:
             card_id = int(card_id)
             if not database_manager.card_exists(card_id):
-                print("card with card_id does not exist")
+                print("Card {} does not exist.".format(card_id))
             else:
                 edit_card(card_id)
         except ValueError:
-            print("argument card_id must be an integer")
+            print("Argument card_id must be an integer.")
+            print(self.usage_notice())
