@@ -222,8 +222,8 @@ def question(card: Card) -> bool:
                 translations_missing = True
                 print("missing:", ", ".join(translations[phrase] - answer))
             if answer - translations[phrase]:  # wrong translations
-                print("wrong:"+("  " if translations_missing else "")
-                      , ", ".join(answer - translations[phrase]))
+                print("wrong:"+("  " if translations_missing else ""),
+                      ", ".join(answer - translations[phrase]))
 
     #######
     # return True/False according to answers
