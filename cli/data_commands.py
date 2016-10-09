@@ -21,7 +21,7 @@ Provides commands for governing the data in data.sqlite3.
 
 from cli.menu import MenuOptionsRegistry, Command
 
-from cli.add import add_cards
+from cli.add import add_cards, add_card
 from cli.edit import edit_card
 
 from data import database_manager
@@ -32,14 +32,41 @@ class Add(Command):
     """
     The 'add' command.
     """
-    usage = "add cards"
-    description = "starts the adding cycle"
+    usage = "add (cards|card|<card_id>) [group_name]"
+    description = "provides methods for adding cards"
 
-    def __init__(self, mode: str):
+    def __init__(self, mode: str, group_name: str = None):
+        if group_name is not None and not database_manager.group_name_exists(group_name):
+            print("Group {} does not exist.".format(group_name))
+            return
+
+        # add many cards
         if mode == "cards":
-            add_cards()
+            add_cards(group_name)
+
+        # add 1 card
+        elif mode == "card":
+            add_card(group_name)
+
+        # add card to group
         else:
-            print("unknown mode:", mode)
+
+            # convert card_id to integer
+            try:
+                card_id = int(mode)
+            except ValueError:
+                print(self.usage_notice())
+                print("card_id must be an integer.")
+                return
+
+            # look for card in the database
+            if not database_manager.card_exists(card_id):
+                print("Card {} does not exist.".format(card_id))
+                return
+
+            # add card to group
+            database_manager.add_card_to_group(card_id, group_name)
+            print("Added card {} to group {}.".format(card_id, group_name))
 
 
 @MenuOptionsRegistry

@@ -23,9 +23,20 @@ Call add_cards to prompt the user for ney cards.
 from data import database_manager
 
 
-def add_cards():
+def add_cards(group_name: str = None):
     """
-    Prompts the user for new cards.
+    Prompts the user for multiple cards.
+    :param group_name: the group the cards should be added to
+    """
+    while group_name == "break":
+        group_name = add_card(group_name)
+
+
+def add_card(group_name: str = None) -> str:
+    """
+    Prompts the user for a new card.
+    :param group_name: the group the card should be added to
+    :return: the name of the group the card was added to or 'break' if the input of the card was cancelled
     """
 
     # init variables
@@ -33,7 +44,6 @@ def add_cards():
     context = None
     synonyms_done = False
     translations = []
-    last_group = None
 
     # start input cycle
     choice = input("root forms > ").strip(" ")
@@ -62,28 +72,20 @@ def add_cards():
                         print("card_id: {}".format(card_id))
 
                         # ask for group to put the card in
-                        group = input("group? ({}) > ".format(last_group)).strip(" ")
+                        group = input("group? ({}) > ".format(group_name)).strip(" ")
                         if group == "":
-                            group = last_group
+                            group_name = group
                         elif group == "None":
-                            group = None
+                            group_name = None
 
-                        if group is not None:
-                            database_manager.add_card_to_group(card_id, group)
-                            print("added card {} to group {}".format(card_id, group))
-
-                        last_group = group
+                        if group_name is not None:
+                            database_manager.add_card_to_group(card_id, group_name)
+                            print("Added card {} to group {}.".format(card_id, group_name))
 
                 else:
                     print("no translations to save.")
 
-                print()
-
-                # reset variables
-                rf = None
-                context = None
-                synonyms_done = False
-                translations = []
+                return group_name
 
             # otherwise continue with given context
             else:
@@ -118,3 +120,5 @@ def add_cards():
             choice = input("synonym > ").strip(" ")
         else:
             choice = input("translation > ").strip(" ")
+
+    return "break"
