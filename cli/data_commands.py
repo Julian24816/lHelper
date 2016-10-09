@@ -32,7 +32,7 @@ class Add(Command):
     """
     The 'add' command.
     """
-    usage = "add (cards|card|<card_id>) [group_name]"
+    usage = "add (cards|card|<card_id>|group) [group_name]"
     description = "provides methods for adding cards"
 
     def __init__(self, mode: str, group_name: str = None):
@@ -47,6 +47,9 @@ class Add(Command):
         # add 1 card
         elif mode == "card":
             add_card(group_name)
+
+        elif mode == "group":
+            database_manager.add_group(group_name)
 
         # add card to group
         else:
