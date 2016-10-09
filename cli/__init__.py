@@ -180,7 +180,7 @@ def mainloop():
         if choice[0] == "":
             continue
         try:
-            MenuOptionsRegistry.run(choice)
+            MenuOptionsRegistry.run(*choice)
         except UnknownCommand:
             print("unknown command: {}\nInput 'help' for a list of available commands.".format(choice[0]))
         except MainloopExit:
