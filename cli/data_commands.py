@@ -19,10 +19,10 @@
 Provides commands for governing the data in data.sqlite3.
 """
 
-from tui.menu import MenuOptionsRegistry, Command
+from cli.menu import MenuOptionsRegistry, Command
 
-from tui.add import add_cards
-from tui.edit import edit_card
+from cli.add import add_cards
+from cli.edit import edit_card
 
 from data import database_manager
 

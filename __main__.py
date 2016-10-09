@@ -29,12 +29,12 @@ __author__ = "Julian Mueller"
 chdir(dirname(abspath(__file__)))
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-t", "--tui", action="store_const", const="tui", default="gui", dest="ui",
-                    help="Run the program with a TextUI instead of a GUI.")
+parser.add_argument("-g", "--gui", action="store_const", const="gui", default="cli", dest="ui",
+                    help="Run the program with a GUI instead of a CLI.")
 ui_choice = parser.parse_args().ui
-if ui_choice == "tui":
-    import tui
-    tui.main(__version__)
+if ui_choice == "cli":
+    import cli
+    cli.main(__version__)
 elif ui_choice == "gui":
     import main
     main.main()
