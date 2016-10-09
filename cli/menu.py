@@ -47,6 +47,12 @@ class Command:
         return "Usage: " + cls.usage
 
 
+class UnknownCommand(RuntimeError):
+    """
+    A unknown command was accessed.
+    """
+
+
 class MenuOptionsRegistry:
     """
     The Registry for all the options to be available.
@@ -90,7 +96,7 @@ class MenuOptionsRegistry:
                 print(e)
                 print("Please contact support.")
         else:
-            raise KeyError("command not registered")
+            raise UnknownCommand(command)
 
     @classmethod
     def get(cls, command: str) -> Command:
@@ -103,7 +109,7 @@ class MenuOptionsRegistry:
         if cls.has_option(command):
             return cls.__registry[command]
         else:
-            raise KeyError("command not registered")
+            raise UnknownCommand(command)
 
     @classmethod
     def has_option(cls, command: str) -> bool:

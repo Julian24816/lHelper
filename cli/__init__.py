@@ -20,7 +20,7 @@ Provides a text based UI for lHelper.
 Start the mainloop by calling main.
 """
 
-from cli.menu import choose_option, Command, MenuOptionsRegistry, MainloopExit
+from cli.menu import choose_option, Command, MenuOptionsRegistry, MainloopExit, UnknownCommand
 
 from cli.lookup import lookup
 from cli.questioning import question_all_due, question_all_group
@@ -176,8 +176,11 @@ def mainloop():
     """
     global prompt
     while True:
+        choice = input(prompt)
         try:
-            MenuOptionsRegistry.run(*choose_option(MenuOptionsRegistry.get_options(), prompt))
+            MenuOptionsRegistry.run(choice)
+        except UnknownCommand:
+            print("unknown command: {}\nInput 'help' for a list of available commands.".format(choice))
         except MainloopExit:
             break
 
