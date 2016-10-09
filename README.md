@@ -14,7 +14,7 @@ The following commands are available in the CLI:
 - `show <group-name>`: list all cards in the given group
     some available groups are:
     - `adeo-9`, `adeo-11`, ..., `adeo-161`
-    - `ratio-aa-1`, `ratio-aa-2`
+    - `ratio-aa-1`, `ratio-aa-2`, ..., `ratio-aa-4`
 - `use <group-name>`: add a group of cards to your personal cards (gives them a due date)
 - `question <group-name>`: let the program question you over all cards in the given group
 - `question [due]`: let the program question you over all due cards
