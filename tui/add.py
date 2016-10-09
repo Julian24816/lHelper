@@ -93,7 +93,8 @@ def add_cards():
             context = None
         # otherwise safe given translation
         else:
-            translations.append(["{} {}".format(rf, context), "latin", choice, "german"])
+            l_phrase = "{} {}".format(rf, context) if context else rf
+            translations.append([l_phrase, "latin", choice, "german"])
 
         # todo enable input of synonyms
 
