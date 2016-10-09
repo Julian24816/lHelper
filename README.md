@@ -13,8 +13,8 @@ The following commands are available in the CLI:
 - `user <your-username>`: create new user or switch to existing one
 - `show <group-name>`: list all cards in the given group
     some available groups are:
-    - `adeo-9`, `adeo-11`, ..., `adeo-161`
-    - `ratio-aa-1`, `ratio-aa-2`, ..., `ratio-aa-4`
+    - `adeo-9`, `adeo-11`, ..., `adeo-161` - the numbers represent the pages of the adeo-NORM
+    - `ratio-aa-1`, `ratio-aa-2`, ..., `ratio-aa-4` - the numbers represent the vocabulary chapters in ratio - aurea aetas
 - `use <group-name>`: add a group of cards to your personal cards (gives them a due date)
 - `question <group-name>`: let the program question you over all cards in the given group
 - `question [due]`: let the program question you over all due cards
