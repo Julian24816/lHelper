@@ -52,7 +52,7 @@ class LookUp(Command):
         :return: the help string
         """
         return "{}\n{}\n\n{}\n{}".format(cls.usage_notice(), cls.description, "string : the string to be looked up",
-                                         "         use _ (= 1 character) and % (= n characters) as wildcards")
+                                         "         supports regular expressions with python syntax")
 
 
 
