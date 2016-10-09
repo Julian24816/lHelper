@@ -27,7 +27,7 @@ from cli.questioning import question_all_due, question_all_group
 from cli.show import show_group
 from cli.use import use_group
 
-# import cli.data_commands
+import cli.data_commands
 
 from data import database_manager, udm_handler
 
@@ -38,12 +38,22 @@ class LookUp(Command):
     The 'lookup' command.
     """
     usage = "lookup string"
-    description = "looks the string up in the database"
+    description = "looks up a string in the database"
 
     def __init__(self, *word: str):
         if len(word) == 0:
             raise TypeError
         lookup(" ".join(word))
+
+    @classmethod
+    def get_help(cls):
+        """
+        Returns a help string for the 'question' command.
+        :return: the help string
+        """
+        return "{}\n{}\n\n{}\n{}".format(cls.usage_notice(), cls.description, "string : the string to be looked up",
+                                         "         supports regular expressions with python syntax")
+
 
 
 @MenuOptionsRegistry

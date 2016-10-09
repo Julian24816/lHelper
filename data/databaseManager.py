@@ -357,7 +357,6 @@ class DatabaseManager(DatabaseOpenHelper):
                                   + " WHERE " + PHRASE_DESCRIPTION + "=? AND " + PHRASE_LANGUAGE + "=?;",
                                   (phrase_description, language)).fetchone() is not None
 
-
     #######
     # retrieve entries from the database
 
@@ -527,6 +526,45 @@ class DatabaseManager(DatabaseOpenHelper):
         db.close()
         return phrases
 
+    def find_cards_with(self, string: str, language: str, cursor: Cursor = None) -> List[Card]:
+        """
+        Returns all cards with a phrase in language like <string> on them
+        :param string: the string to be searched for
+        :param language: the strings language
+        :param cursor: the cursor to be used to access the database
+        :return: a list of cards
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            db.create_function("REGEXP", 2, regexp)
+            cur = db.cursor()
+            cards = self.find_cards_with(string, language, cur)
+            db.close()
+            return cards
+
+        # a cursor was passed on
+        else:
+            # add sqlite3 wildcards to match string
+            # string = "%{}%".format(string)
+
+            # find matching card_ids
+            cursor.execute("SELECT DISTINCT " + CARD_ID + " FROM " + TABLE_CARD + " AS c"
+                           + " JOIN " + TABLE_TRANSLATION + " AS t ON t." + TRANSLATION_ID + "=c." + TRANSLATION_ID
+                           + " JOIN " + TABLE_PHRASE + " AS p ON p." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_1
+                           + " JOIN " + TABLE_PHRASE + " AS p2 ON p2." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_2
+                           + " WHERE p." + PHRASE_DESCRIPTION + " REGEXP ?"
+                           + " AND p." + PHRASE_LANGUAGE + "=?"
+                           + " OR p2." + PHRASE_DESCRIPTION + " REGEXP ?"
+                           + " AND p2." + PHRASE_LANGUAGE + "=?", (string, language, string, language))
+
+            # load cards
+            cards = []
+            for card_id, in cursor.fetchall():
+                cards.append(self.get_card(card_id, cursor))
+            return cards
+
     #######
     # update entries in the database
 
@@ -651,3 +689,15 @@ class DatabaseManager(DatabaseOpenHelper):
                            + "(SELECT " + TRANSLATION_PHRASE_1 + " FROM " + TABLE_TRANSLATION + ")"
                            + " AND " + PHRASE_ID + " NOT IN "
                            + "(SELECT " + TRANSLATION_PHRASE_2 + " FROM " + TABLE_TRANSLATION + ");")
+
+
+def regexp(expr: str, string: str):
+    """
+    Provides a re support to the sqlite3 database
+    :param expr: the regexp
+    :param string: the string to be searched
+    :return: True/False
+    """
+    from re import compile
+    reg = compile(expr)
+    return reg.search(string) is not None

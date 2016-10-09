@@ -20,13 +20,16 @@ lHelper project: python application for helping me learn Latin
 """
 
 import argparse
+from sys import path
 from os import chdir
 from os.path import dirname, abspath
 
 __version__ = "1.2.2"
 __author__ = "Julian Mueller"
 
-chdir(dirname(abspath(__file__)))
+path_to_main = abspath(__file__)
+path.append(dirname(path_to_main))
+chdir(dirname(path_to_main))
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-g", "--gui", action="store_const", const="gui", default="cli", dest="ui",
