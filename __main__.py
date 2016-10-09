@@ -24,6 +24,8 @@ from sys import path
 from os import chdir
 from os.path import dirname, abspath
 
+ENABLE_DATA_COMMANDS = True
+
 __version__ = "1.3.1"
 __author__ = "Julian Mueller"
 
@@ -37,7 +39,7 @@ parser.add_argument("-g", "--gui", action="store_const", const="gui", default="c
 ui_choice = parser.parse_args().ui
 if ui_choice == "cli":
     import cli
-    cli.main(__version__)
+    cli.main(__version__, enable_data_commands=ENABLE_DATA_COMMANDS)
 elif ui_choice == "gui":
     import main
     main.main()
