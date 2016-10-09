@@ -31,6 +31,7 @@ def add_cards():
     # init variables
     rf = None
     context = None
+    synonyms_done = False
     translations = []
     last_group = None
 
@@ -81,27 +82,39 @@ def add_cards():
                 # reset variables
                 rf = None
                 context = None
+                synonyms_done = False
                 translations = []
 
             # otherwise continue with given context
             else:
                 context = choice
+                synonyms_done = False
+
+        # last choice asked for synonyms
+        elif not synonyms_done:
+            # no synonyms for latin phrase
+            if choice == "":
+                synonyms_done = True
+            # save synonym
+            else:
+                l_phrase = "{} {}".format(rf, context) if context else rf
+                translations.append((l_phrase, "latin", choice, "latin"))
 
         # last choice asked for translations
         # if nothing was given, go back to context level
         elif choice == "":
             context = None
-        # otherwise safe given translation
+        # otherwise save given translation
         else:
             l_phrase = "{} {}".format(rf, context) if context else rf
-            translations.append([l_phrase, "latin", choice, "german"])
-
-        # todo enable input of synonyms
+            translations.append((l_phrase, "latin", choice, "german"))
 
         # ask for next choice
         if rf is None:
             choice = input("root forms > ").strip(" ")
         elif context is None:
             choice = input("y|context > ").strip(" ")
+        elif not synonyms_done:
+            choice = input("synonym > ").strip(" ")
         else:
             choice = input("translation > ").strip(" ")
