@@ -544,6 +544,9 @@ class DatabaseManager(DatabaseOpenHelper):
 
         # a cursor was passed on
         else:
+            # add sqlite3 wildcards to match string
+            string = "%{}%".format(string)
+
             # find matching card_ids
             cursor.execute("SELECT " + CARD_ID + " FROM " + TABLE_CARD + " AS c"
                            + " JOIN " + TABLE_TRANSLATION + " AS t ON t." + TRANSLATION_ID + "=c." + TRANSLATION_ID
