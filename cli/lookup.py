@@ -19,11 +19,23 @@
 Provides methods for the 'lookup' command.
 """
 
+from data import database_manager
+from data.cardManager import CardManager
+
 
 def lookup(string: str):
     """
     Looks up word in the database.
     :param string: the string to be looked up
     """
-    print("WIP")
-    # todo implement lookup
+
+    # retrieve cards form database
+    cards = database_manager.find_cards_with(string)
+    if len(cards) == 0:
+        print("No cards found.")
+
+    # print out cards
+    for card_id, translations in cards:
+        print("[{}]".format(card_id))
+        for translation in translations:
+            print("")

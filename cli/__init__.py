@@ -27,7 +27,7 @@ from cli.questioning import question_all_due, question_all_group
 from cli.show import show_group
 from cli.use import use_group
 
-# import cli.data_commands
+import cli.data_commands
 
 from data import database_manager, udm_handler
 
