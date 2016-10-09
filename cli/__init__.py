@@ -55,7 +55,6 @@ class LookUp(Command):
                                          "         supports regular expressions with python syntax")
 
 
-
 @MenuOptionsRegistry
 class Question(Command):
     """

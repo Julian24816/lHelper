@@ -24,7 +24,7 @@ from sys import path
 from os import chdir
 from os.path import dirname, abspath
 
-__version__ = "1.2.2"
+__version__ = "1.3.0"
 __author__ = "Julian Mueller"
 
 path_to_main = abspath(__file__)
