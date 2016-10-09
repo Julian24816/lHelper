@@ -38,4 +38,4 @@ def lookup(string: str):
     for card_id, translations in cards:
         print("[{}]".format(card_id))
         for translation in translations:
-            print("")
+            print("{} -> {}".format(translation[0], translation[2]))
