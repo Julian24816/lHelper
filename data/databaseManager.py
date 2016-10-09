@@ -546,7 +546,7 @@ class DatabaseManager(DatabaseOpenHelper):
         # a cursor was passed on
         else:
             # add sqlite3 wildcards to match string
-            string = "%{}%".format(string)
+            # string = "%{}%".format(string)
 
             # find matching card_ids
             cursor.execute("SELECT DISTINCT " + CARD_ID + " FROM " + TABLE_CARD + " AS c"
