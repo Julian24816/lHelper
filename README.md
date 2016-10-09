@@ -1,18 +1,28 @@
 # lHelper
 python application for helping me learn Latin
 
-## using the program
-clone the project and run `python project-folder` to start it.
+## 0. Installation
+- `git clone https://github.com/Julian24816/lHelper.git`
+- `git pull master` for updates
 
-Options in the TextUIs menu:
+## 1. Usage
+run the program with `python <folder-name>` to start it with the commandline interface enabled.
 
-- To create a new user choose `user your-username` and confirm with `y`.
-    - this also allows for user-switching
-- To use a group of cards for questioning choose `use group-name`.
-    - some available groups are:
-        - adeo-9
-        - adeo-11
-        - ...
-        - adeo-161
-- To question you over all due cards choose `question` or `question due`. 
-    - You can also choose `question group-name` to question you over all cards in that group, provided you're using all of them.
+The following commands are available in the CLI:
+
+- `user <your-username>`: create new user or switch to existing one
+- `show <group-name>`: list all cards in the given group
+    some available groups are:
+    - `adeo-9`, `adeo-11`, ..., `adeo-161`
+    - `ratio-aa-1`, `ratio-aa-2`
+- `use <group-name>`: add a group of cards to your personal cards (gives them a due date)
+- `question <group-name>`: let the program question you over all cards in the given group
+- `question [due]`: let the program question you over all due cards
+
+The following commands are disabled by default as they modify the git-synchronised card-db:
+
+- `add cards`: add new cards to the db
+- `edit <card-id>`: edit a specific card in the db
+
+## 2. Mistakes in Card-Data and other feedback
+feel free to contact me at julian24816@gmail.com
