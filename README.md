@@ -18,6 +18,8 @@ The following commands are available in the CLI:
 - `use <group-name>`: add a group of cards to your personal cards (gives them a due date)
 - `question <group-name>`: let the program question you over all cards in the given group
 - `question [due]`: let the program question you over all due cards
+- `lookup <string>`: print all cards matching string
+    string can be a python regexp
 
 The following commands are disabled by default as they modify the git-synchronised card-db:
 
