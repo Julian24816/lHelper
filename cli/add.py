@@ -73,10 +73,10 @@ def add_card(group_name: str = None) -> str:
 
                         # ask for group to put the card in
                         group = input("group? ({}) > ".format(group_name)).strip(" ")
-                        if group == "":
-                            group_name = group
-                        elif group == "None":
+                        if group == "None":
                             group_name = None
+                        elif group != "":
+                            group_name = group
 
                         if group_name is not None:
                             database_manager.add_card_to_group(card_id, group_name)
