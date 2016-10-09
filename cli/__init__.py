@@ -176,11 +176,13 @@ def mainloop():
     """
     global prompt
     while True:
-        choice = input(prompt)
+        choice = input(prompt).split(" ")
+        if choice[0] == "":
+            continue
         try:
             MenuOptionsRegistry.run(choice)
         except UnknownCommand:
-            print("unknown command: {}\nInput 'help' for a list of available commands.".format(choice))
+            print("unknown command: {}\nInput 'help' for a list of available commands.".format(choice[0]))
         except MainloopExit:
             break
 
