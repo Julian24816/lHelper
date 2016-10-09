@@ -548,7 +548,7 @@ class DatabaseManager(DatabaseOpenHelper):
             string = "%{}%".format(string)
 
             # find matching card_ids
-            cursor.execute("SELECT " + CARD_ID + " FROM " + TABLE_CARD + " AS c"
+            cursor.execute("SELECT DISTINCT " + CARD_ID + " FROM " + TABLE_CARD + " AS c"
                            + " JOIN " + TABLE_TRANSLATION + " AS t ON t." + TRANSLATION_ID + "=c." + TRANSLATION_ID
                            + " JOIN " + TABLE_PHRASE + " AS l ON l." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_1
                            + " JOIN " + TABLE_PHRASE + " AS g ON g." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_2
