@@ -538,6 +538,7 @@ class DatabaseManager(DatabaseOpenHelper):
         # if no cursor was passed on, open the database and call the method recursively with a new cursor object
         if cursor is None:
             db = self.get_connection()
+            db.create_function("REGEXP", 2, regexp)
             cur = db.cursor()
             cards = self.find_cards_with(string, language, cur)
             db.close()
@@ -553,9 +554,9 @@ class DatabaseManager(DatabaseOpenHelper):
                            + " JOIN " + TABLE_TRANSLATION + " AS t ON t." + TRANSLATION_ID + "=c." + TRANSLATION_ID
                            + " JOIN " + TABLE_PHRASE + " AS p ON p." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_1
                            + " JOIN " + TABLE_PHRASE + " AS p2 ON p2." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_2
-                           + " WHERE p." + PHRASE_DESCRIPTION + " LIKE ?"
+                           + " WHERE p." + PHRASE_DESCRIPTION + " REGEXP ?"
                            + " AND p." + PHRASE_LANGUAGE + "=?"
-                           + " OR p2." + PHRASE_DESCRIPTION + " LIKE ?"
+                           + " OR p2." + PHRASE_DESCRIPTION + " REGEXP ?"
                            + " AND p2." + PHRASE_LANGUAGE + "=?", (string, language, string, language))
 
             # load cards
@@ -688,3 +689,15 @@ class DatabaseManager(DatabaseOpenHelper):
                            + "(SELECT " + TRANSLATION_PHRASE_1 + " FROM " + TABLE_TRANSLATION + ")"
                            + " AND " + PHRASE_ID + " NOT IN "
                            + "(SELECT " + TRANSLATION_PHRASE_2 + " FROM " + TABLE_TRANSLATION + ");")
+
+
+def regexp(expr: str, string: str):
+    """
+    Provides a re support to the sqlite3 database
+    :param expr: the regexp
+    :param string: the string to be searched
+    :return: True/False
+    """
+    from re import compile
+    reg = compile(expr)
+    return reg.search(string) is not None
