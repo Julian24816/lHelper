@@ -16,18 +16,18 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
-Provides a Command Line interface for lHelper.
+Provides a text based UI for lHelper.
 Start the mainloop by calling main.
 """
 
-from cli.menu import choose_option, Command, MenuOptionsRegistry, MainloopExit
+from tui.menu import choose_option, Command, MenuOptionsRegistry, MainloopExit
 
-from cli.lookup import lookup
-from cli.questioning import question_all_due, question_all_group
-from cli.show import show_group
-from cli.use import use_group
+from tui.lookup import lookup
+from tui.questioning import question_all_due, question_all_group
+from tui.show import show_group
+from tui.use import use_group
 
-import cli.data_commands
+# import tui.data_commands
 
 from data import database_manager, udm_handler
 
