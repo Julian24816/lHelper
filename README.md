@@ -41,3 +41,6 @@ Next questioning: 2016-10-10
 [...]
 test $ exit
 ```
+
+## 2. Mistakes in Card-Data and other feedback
+feel free to contact me at julian24816@gmail.com
