@@ -20,7 +20,6 @@ Provides methods for the 'lookup' command.
 """
 
 from data import database_manager
-from data.cardManager import CardManager
 from language import Latin
 
 
