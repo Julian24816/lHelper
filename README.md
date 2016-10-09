@@ -3,7 +3,7 @@ python application for helping me learn Latin
 
 ## 0. Installation
 - `git clone https://github.com/Julian24816/lHelper.git`
-- `git pull master` for updates
+- `git fetch origin` for updates
 
 ## 1. Usage
 run the program with `python <folder-name>` to start it with the commandline interface enabled.
