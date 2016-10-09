@@ -357,7 +357,6 @@ class DatabaseManager(DatabaseOpenHelper):
                                   + " WHERE " + PHRASE_DESCRIPTION + "=? AND " + PHRASE_LANGUAGE + "=?;",
                                   (phrase_description, language)).fetchone() is not None
 
-
     #######
     # retrieve entries from the database
 
@@ -526,6 +525,38 @@ class DatabaseManager(DatabaseOpenHelper):
                                       + " WHERE " + PHRASE_LANGUAGE + "=?;", (language,)).fetchall()))
         db.close()
         return phrases
+
+    def find_cards_with(self, string: str, cursor: Cursor = None) -> List[Card]:
+        """
+        Returns all cards with a phrase like <string> on them
+        :param string: the string to be searched for
+        :param cursor: the cursor to be used to access the database
+        :return: a list of cards
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            cards = self.find_cards_with(string, cur)
+            db.close()
+            return cards
+
+        # a cursor was passed on
+        else:
+            # find matching card_ids
+            cursor.execute("SELECT " + CARD_ID + " FROM " + TABLE_CARD + " AS c"
+                           + " JOIN " + TABLE_TRANSLATION + " AS t ON t." + TRANSLATION_ID + "=c." + TRANSLATION_ID
+                           + " JOIN " + TABLE_PHRASE + " AS l ON l." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_1
+                           + " JOIN " + TABLE_PHRASE + " AS g ON g." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_2
+                           + " WHERE l." + PHRASE_DESCRIPTION + " LIKE ?"
+                           + " OR g." + PHRASE_DESCRIPTION + " LIKE ?", (string, string))
+
+            # load cards
+            cards = []
+            for card_id, in cursor.fetchall():
+                cards.append(self.get_card(card_id, cursor))
+            return cards
 
     #######
     # update entries in the database
