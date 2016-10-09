@@ -36,7 +36,10 @@ class Add(Command):
     description = "provides methods for adding cards"
 
     def __init__(self, mode: str, group_name: str = None):
-        if group_name is not None and not database_manager.group_name_exists(group_name):
+        if group_name is not None and mode == "group" and database_manager.group_name_exists(group_name):
+            print("Group {} already exists.".format(group_name))
+            return
+        elif group_name is not None and mode != "group" and not database_manager.group_name_exists(group_name):
             print("Group {} does not exist.".format(group_name))
             return
 
