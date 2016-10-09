@@ -36,6 +36,7 @@ def lookup(string: str):
 
     # print out cards
     for card_id, translations in cards:
-        print("[{}]".format(card_id))
+        groups = database_manager.get_group_names_for_card(card_id)
+        print("[{}, {}]".format(card_id, ", ".join(groups)) if groups else "[{}]".format(card_id))
         for translation in translations:
             print("{} -> {}".format(translation[0], translation[2]))
