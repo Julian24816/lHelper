@@ -53,6 +53,7 @@ class Add(Command):
 
         elif mode == "group":
             database_manager.add_group(group_name)
+            print("Added group {}.".format(group_name))
 
         # add card to group
         else:
