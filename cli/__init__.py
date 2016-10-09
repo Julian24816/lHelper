@@ -27,8 +27,6 @@ from cli.questioning import question_all_due, question_all_group
 from cli.show import show_group
 from cli.use import use_group
 
-# import cli.data_commands
-
 from data import database_manager, udm_handler
 
 
@@ -187,11 +185,12 @@ def mainloop():
 prompt = "$ "
 
 
-def main(version: str, user: str = None):
+def main(version: str, user: str = None, enable_data_commands: bool = False):
     """
     The TextUIs main method.
     :param version: the programs version to be displayed
     :param user: the user that should be active on start
+    :param enable_data_commands: True to enable data_commands
     """
     print("""lHelper v{} Copyright (C) 2016 Julian Mueller
 This program comes with ABSOLUTELY NO WARRANTY; for details type 'show w'.
@@ -204,5 +203,8 @@ under certain conditions; type 'show c' for details.""".format(version))
     global prompt
     if udm_handler.get_user() is not None:
         prompt = "{} $ ".format(udm_handler.get_user())
+
+    if enable_data_commands:
+        import cli.data_commands
 
     mainloop()
