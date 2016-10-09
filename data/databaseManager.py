@@ -552,8 +552,11 @@ class DatabaseManager(DatabaseOpenHelper):
             cursor.execute("SELECT DISTINCT " + CARD_ID + " FROM " + TABLE_CARD + " AS c"
                            + " JOIN " + TABLE_TRANSLATION + " AS t ON t." + TRANSLATION_ID + "=c." + TRANSLATION_ID
                            + " JOIN " + TABLE_PHRASE + " AS p ON p." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_1
+                           + " JOIN " + TABLE_PHRASE + " AS p2 ON p2." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_2
                            + " WHERE p." + PHRASE_DESCRIPTION + " LIKE ?"
-                           + " AND p." + PHRASE_LANGUAGE + "=?", (string, language))
+                           + " AND p." + PHRASE_LANGUAGE + "=?"
+                           + " OR p2." + PHRASE_DESCRIPTION + " LIKE ?"
+                           + " AND p2." + PHRASE_LANGUAGE + "=?", (string, language, string, language))
 
             # load cards
             cards = []
