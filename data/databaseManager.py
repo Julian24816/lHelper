@@ -526,10 +526,11 @@ class DatabaseManager(DatabaseOpenHelper):
         db.close()
         return phrases
 
-    def find_cards_with(self, string: str, cursor: Cursor = None) -> List[Card]:
+    def find_cards_with(self, string: str, language: str, cursor: Cursor = None) -> List[Card]:
         """
-        Returns all cards with a phrase like <string> on them
+        Returns all cards with a phrase in language like <string> on them
         :param string: the string to be searched for
+        :param language: the strings language
         :param cursor: the cursor to be used to access the database
         :return: a list of cards
         """
@@ -538,7 +539,7 @@ class DatabaseManager(DatabaseOpenHelper):
         if cursor is None:
             db = self.get_connection()
             cur = db.cursor()
-            cards = self.find_cards_with(string, cur)
+            cards = self.find_cards_with(string, language, cur)
             db.close()
             return cards
 
@@ -550,10 +551,9 @@ class DatabaseManager(DatabaseOpenHelper):
             # find matching card_ids
             cursor.execute("SELECT DISTINCT " + CARD_ID + " FROM " + TABLE_CARD + " AS c"
                            + " JOIN " + TABLE_TRANSLATION + " AS t ON t." + TRANSLATION_ID + "=c." + TRANSLATION_ID
-                           + " JOIN " + TABLE_PHRASE + " AS l ON l." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_1
-                           + " JOIN " + TABLE_PHRASE + " AS g ON g." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_2
-                           + " WHERE l." + PHRASE_DESCRIPTION + " LIKE ?"
-                           + " OR g." + PHRASE_DESCRIPTION + " LIKE ?", (string, string))
+                           + " JOIN " + TABLE_PHRASE + " AS p ON p." + PHRASE_ID + "=t." + TRANSLATION_PHRASE_1
+                           + " WHERE p." + PHRASE_DESCRIPTION + " LIKE ?"
+                           + " AND p." + PHRASE_LANGUAGE + "=?", (string, language))
 
             # load cards
             cards = []

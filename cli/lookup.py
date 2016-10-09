@@ -21,6 +21,7 @@ Provides methods for the 'lookup' command.
 
 from data import database_manager
 from data.cardManager import CardManager
+from language import Latin
 
 
 def lookup(string: str):
@@ -30,7 +31,7 @@ def lookup(string: str):
     """
 
     # retrieve cards form database
-    cards = database_manager.find_cards_with(string)
+    cards = database_manager.find_cards_with(string, Latin.name)
     if len(cards) == 0:
         print("No cards found.")
 
