@@ -203,7 +203,7 @@ def question(card: Card) -> bool:
             last_word = phrase
 
             # ask for translations:
-            res = input(" {}: ".format(phrase.context))
+            res = input((" " if phrase.context else "") + "{}: ".format(phrase.context))
 
         # phrase is no Word -> WordGroup
         else:
