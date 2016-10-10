@@ -35,7 +35,13 @@ def use_group(group_name: str):
         print("Group {} does not exist.".format(group_name))
         return
 
-    for card_id, _ in database_manager.load_group(database_manager.get_group_id_for_name(group_name))[2]:
+    cards = database_manager.load_group(database_manager.get_group_id_for_name(group_name))[2]
+
+    if len(cards) > 100 and not (
+            input("Do you really want to add {} cards? [y] ".format(len(cards))).strip(" ").lower().endswith("y")):
+        return
+
+    for card_id, _ in cards:
         if not udm_handler.get_udm().card_is_used(card_id):
             udm_handler.get_udm().add_card(card_id, CardManager.DEFAULT_SHELF, "today")
             print("Added card {} to shelf {}".format(card_id, CardManager.DEFAULT_SHELF))
