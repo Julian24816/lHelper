@@ -171,7 +171,7 @@ def question(card: Card) -> bool:
     #######
     # question user over the data
 
-    groups = card.get_groups()
+    groups = sorted(card.get_groups())
     print("[{}, {}, {}]".format(card.get_id(), card.get_shelf(), ", ".join(groups) if groups else "None"))
 
     all_answers_correct = True
