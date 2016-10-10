@@ -32,7 +32,7 @@ class Add(Command):
     """
     The 'add' command.
     """
-    usage = "add (cards|card|<card_id>|group) [group_name]"
+    usage = "add (cards|card|<card_id>|group) [<group_name>]"
     description = "provides methods for adding cards"
 
     def __init__(self, mode: str, group_name: str = None):
@@ -81,7 +81,7 @@ class Edit(Command):
     """
     The 'edit' command.
     """
-    usage = "edit card_id"
+    usage = "edit <card_id>"
     description = "lets the user edit the card with id card_id"
 
     def __init__(self, card_id):

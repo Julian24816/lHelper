@@ -35,10 +35,13 @@ class LookUp(Command):
     """
     The 'lookup' command.
     """
-    usage = "lookup string"
+    usage = "lookup <string>"
     description = "looks up a string in the database"
 
     def __init__(self, *word: str):
+        if udm_handler.get_user() is None:
+            print("Choose user first. (user <username>)")
+            return
         if len(word) == 0:
             raise TypeError
         lookup(" ".join(word))
@@ -58,10 +61,13 @@ class Question(Command):
     """
     The 'question' command.
     """
-    usage = "question [due|group_name]"
+    usage = "question [due|<group_name>]"
     description = "questions the user over all due cards or all cards in group_name"
 
     def __init__(self, group_name: str = "due"):
+        if udm_handler.get_user() is None:
+            print("Choose user first. (user <username>)")
+            return
         if group_name == "due":
             question_all_due()
         elif database_manager.group_name_exists(group_name):
@@ -83,7 +89,7 @@ class Show(Command):
     """
     The 'show c' and 'show w' commands.
     """
-    usage = "show (c|w|group_name)"
+    usage = "show (c|w|<group_name>)"
     description = "show corresponding parts of LICENSE or all cards in card-group group_name"
 
     def __init__(self, group: str):
@@ -146,10 +152,13 @@ class Use(Command):
     """
     The 'use' command
     """
-    usage = "use group_name"
+    usage = "use <group_name>"
     description = "put all cards in card-group group_name in shelf 1"
 
     def __init__(self, group_name: str):
+        if udm_handler.get_user() is None:
+            print("Choose user first. (user <username>)")
+            return
         use_group(group_name)
 
 
@@ -158,7 +167,7 @@ class User(Command):
     """
     The 'user' command.
     """
-    usage = "user user_name"
+    usage = "user <user_name>"
     description = "switch to user with name user_name"
 
     def __init__(self, name: str):
