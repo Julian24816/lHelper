@@ -29,6 +29,8 @@ from cli.use import use_group
 
 from data import database_manager, udm_handler
 
+from re import match
+
 
 @MenuOptionsRegistry
 class LookUp(Command):
@@ -173,6 +175,8 @@ class User(Command):
     def __init__(self, name: str):
         global prompt
         if name not in udm_handler.get_user_names():
+            if not match("^[\w\-. ]+$", name):
+                print("Invalid user name. Only use a-z, A-Z, 0-9, _, -, .")
             if choose_option(["y", "n"], "Username does not exist. Create new user? [y|n] ")[0] == "n":
                 return
         udm_handler.set_user(name)
