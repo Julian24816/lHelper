@@ -20,7 +20,7 @@ Provides methods for the 'question' cycle.
 Call question_all(<List[data.Card]>) to question the user over these vocabs.
 """
 
-from data.cardManager import CardManager, Card
+from data.cardManager import CardManager, Card, CardNotUsedError
 from language import German, Latin
 
 from typing import Iterable
@@ -40,7 +40,13 @@ def question_all_group(group_name: str):
     Questions the user over all cards in card-group group_name.
     :param group_name: the groups name
     """
-    question_all(CardManager.get_group_for_name(group_name).get_cards())
+    try:
+        group = CardManager.get_group_for_name(group_name)
+    except CardNotUsedError:
+        print("A card in {} is not used by the current user.\nUse the command 'use {}' first.".format(group_name,
+                                                                                                      group_name))
+        return
+    question_all(group.get_cards())
 
 
 def question_all(cards: Iterable[Card]):

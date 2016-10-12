@@ -28,6 +28,18 @@ from typing import List, Tuple
 Card = Tuple[int, int, str]  # id, shelf, due_date
 
 
+class CardNotUsedError(ValueError):
+    """
+    Raised when a card not used by the current user is tried to access.
+    """
+
+
+class CardAlreadyUsedError(ValueError):
+    """
+    Raised when a card that is already used is tried to be added.
+    """
+
+
 class UserDatabaseManager(DatabaseOpenHelper):
     """
     Responsible for all database interactions concerning user data.
@@ -75,7 +87,7 @@ class UserDatabaseManager(DatabaseOpenHelper):
         # a cursor was passed on
         else:
             if self.card_is_used(card_id, cursor):
-                raise ValueError("Card {} is already used by user {}.".format(card_id, self.user_name))
+                raise CardAlreadyUsedError("Card {} is already used by user {}.".format(card_id, self.user_name))
 
             if due_date == "today":
                 due_date = strftime("%Y-%m-%d")
@@ -130,7 +142,7 @@ class UserDatabaseManager(DatabaseOpenHelper):
         # a cursor was passed on
         else:
             if not self.card_is_used(card_id, cursor):
-                raise ValueError("Card {} is not used by user {}.".format(card_id, self.user_name))
+                raise CardNotUsedError("Card {} is not used by user {}.".format(card_id, self.user_name))
 
             shelf, due_date = cursor.execute("SELECT " + ",".join((USED_CARD_SHELF, USED_CARD_DUE_DATE))
                                              + " FROM " + TABLE_USED_CARD + " WHERE " + CARD_ID + "=?;",
@@ -185,7 +197,7 @@ class UserDatabaseManager(DatabaseOpenHelper):
             card_id, shelf, due_date = card
 
             if not self.card_is_used(card_id, cursor):
-                raise ValueError("Card {} is not used by user {}.".format(card_id, self.user_name))
+                raise CardNotUsedError("Card {} is not used by user {}.".format(card_id, self.user_name))
 
             cursor.execute("UPDATE " + TABLE_USED_CARD + " SET " + USED_CARD_SHELF + "=?, "
                            + USED_CARD_DUE_DATE + "=? WHERE " + CARD_ID + "=?;", (shelf, due_date, card_id))

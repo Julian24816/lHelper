@@ -21,6 +21,7 @@ Instantiate CardManager to get access to the functionality.
 """
 
 from data import database_manager, udm_handler
+from data.userDatabaseManager import CardNotUsedError
 from language import Phrase, phrase_classes
 from random import choice
 from time import localtime, strftime, time
