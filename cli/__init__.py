@@ -189,7 +189,7 @@ def mainloop():
     """
     global prompt
     while True:
-        choice = input(prompt).split(" ")
+        choice = input(prompt).strip(" ").split(" ")
         if choice[0] == "":
             continue
         try:

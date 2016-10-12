@@ -26,7 +26,7 @@ from os.path import dirname, abspath
 
 ENABLE_DATA_COMMANDS = False
 
-__version__ = "1.4.5"
+__version__ = "1.4.6"
 __author__ = "Julian Mueller"
 
 path_to_main = abspath(__file__)
