@@ -20,7 +20,8 @@ Provides methods for the 'question' cycle.
 Call question_all(<List[data.Card]>) to question the user over these vocabs.
 """
 
-from data.cardManager import CardManager, Card, CardNotUsedError
+from data.cardManager import CardManager, Card
+from data.userDatabaseManager import CardNotUsedError
 from language import German, Latin
 
 from typing import Iterable
