@@ -22,6 +22,7 @@ Manages the parsing of latin phrases.
 from language.abc import Language, Phrase
 
 from re import match
+from typing import List
 
 Latin = Language("latin")
 
@@ -49,6 +50,15 @@ class LatinPhrase(Phrase):
 
         # todo parse for other kinds of words
         return WordGroup(phrase)
+
+    @staticmethod
+    def get_possible_root_forms_for(string: str) -> List[str]:
+        """
+        Returns all root forms that belong to words that could when bend result in the given string.
+        :param string: the string to find root forms for
+        :return: a list of strings
+        """
+        raise NotImplementedError
 
     def is_word(self):
         """
