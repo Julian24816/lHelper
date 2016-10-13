@@ -222,6 +222,8 @@ def question(card: UsedCard) -> bool:
         if "" in answer:
             answer.remove("")
 
+        # todo recognise typos automatically
+
         if answer != translations[phrase]:
             all_answers_correct = False
             translations_missing = False
@@ -237,6 +239,8 @@ def question(card: UsedCard) -> bool:
 
     if all_answers_correct:
         return True
+
+    # todo give more information on what the user did wrong
 
     # allow for typos to be forwarded anyway
     elif input("Your answers haven't all been correct. Forward anyway? [y] ").endswith("y"):
