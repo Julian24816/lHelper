@@ -171,14 +171,31 @@ class CardManager:
     #######
     # get methods
 
-    @staticmethod
-    def lookup(string) -> List[Card]:
+    @classmethod
+    def lookup(cls, string, language) -> List[Card]:
         """
         Returns a list of Card-objects, that match the string.
         :param string: the string to be looked up
-        :return:
+        :param language: the language of the string
+        :return: a list of cards.
         """
-        pass
+        # get possible root forms for string
+        rfs = phrase_classes[language].get_possible_root_forms_for(string)
+
+        # load corresponding cards
+        cards = []
+
+        for rf in rfs:
+            matching_cards = [c[0] for c in database_manager.find_cards_with(rf, language)]
+
+            for card in matching_cards:
+                if udm_handler.get_udm().card_is_used(card[0]):
+                    cards.append(UsedCard(*udm_handler.get_udm().get_card(card[0]), card[1],
+                                          database_manager.get_group_names_for_card(card[0])))
+                else:
+                    cards.append(Card(card[0], card[1], database_manager.get_group_names_for_card(card[0])))
+
+        # todo implement checking whether each card really corresponds to the string
 
     @classmethod
     def get_due_cards(cls, due_date: str = "today") -> List[UsedCard]:

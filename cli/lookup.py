@@ -30,7 +30,7 @@ def lookup(string: str):
     """
 
     # retrieve cards form database
-    cards = CardManager.lookup(string)
+    cards = CardManager.lookup(string, Latin.name)
     if len(cards) == 0:
         print("No cards found.")
 
