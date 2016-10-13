@@ -240,7 +240,12 @@ class CardManager:
         """
         if group_id not in cls.groups:
             cls.load_card_group(group_id)
+
+        # todo allow for group truncation (e.g. 'adeo<d')
+
         return cls.groups[group_id]
+
+
 
     @classmethod
     def get_group_for_name(cls, group_name: str) -> CardGroup:
