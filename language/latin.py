@@ -43,7 +43,7 @@ class LatinPhrase(Phrase):
         if phrase.find("...") != -1:
             return WordGroup(phrase)
 
-        m = match("(\w+re|\w+ri)(, \w+)+( sum)?", phrase)
+        m = match("^(\w+re|\w+ri)(, \w+)+( sum)?", phrase)
         if m:
             return Verb(phrase[:len(m.group())], phrase[len(m.group()):])
 

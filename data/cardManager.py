@@ -32,19 +32,14 @@ class Card:
     """
     Holds a vocabulary Card.
     """
-    def __init__(self, card_id: int, shelf: int, due_date: str, translations: List[Tuple[str, str, str, str]],
-                 groups: Iterable[str]):
+    def __init__(self, card_id: int, translations: List[Tuple[str, str, str, str]], groups: Iterable[str]):
         """
-        Initialize the Card.
+        Initialize the UsedCard.
         :param card_id: the cards id in the database.
-        :param shelf: the shelf the cards sits on
-        :param due_date: the date the card is due
         :param translations: the translations on the card
         :param groups: the groups the card is in
         """
         self.card_id = card_id
-        self.shelf = shelf
-        self.due_date = due_date
 
         self.translations = []
         for phrase1, language1, phrase2, language2 in translations:
@@ -59,18 +54,6 @@ class Card:
         """
         return self.card_id
 
-    def get_shelf(self):
-        """
-        :return: the shelf the card is on
-        """
-        return self.shelf
-
-    def get_due_date(self):
-        """
-        :return: the cards due date
-        """
-        return self.due_date
-
     def get_translations(self) -> List[Tuple[Phrase, Phrase]]:
         """
         :return: the translations on the card
@@ -84,11 +67,42 @@ class Card:
         return self.groups
 
 
+class UsedCard(Card):
+    """
+    Holds a used vocabulary Card.
+    """
+    def __init__(self, card_id: int, shelf: int, due_date: str, translations: List[Tuple[str, str, str, str]],
+                 groups: Iterable[str]):
+        """
+        Initialize the UsedCard.
+        :param card_id: the cards id in the database.
+        :param shelf: the shelf the cards sits on
+        :param due_date: the date the card is due
+        :param translations: the translations on the card
+        :param groups: the groups the card is in
+        """
+        super(UsedCard, self).__init__(card_id, translations, groups)
+        self.shelf = shelf
+        self.due_date = due_date
+
+    def get_shelf(self):
+        """
+        :return: the shelf the card is on
+        """
+        return self.shelf
+
+    def get_due_date(self):
+        """
+        :return: the cards due date
+        """
+        return self.due_date
+
+
 class CardGroup:
     """
     A group of cards.
     """
-    def __init__(self, cards: Iterable[Card], name: str, parent_name: str = None):
+    def __init__(self, cards: Iterable[UsedCard], name: str, parent_name: str = None):
         """
         Initialize the Group.
         :param cards: the cards in the group
@@ -99,7 +113,7 @@ class CardGroup:
         self.name = name
         self.parent_name = parent_name
 
-    def get_cards(self) -> Set[Card]:
+    def get_cards(self) -> Set[UsedCard]:
         """
         :return: the cards in the group
         """
@@ -125,8 +139,8 @@ class CardManager:
         :return: the card group
         """
         name, parent_name, cards = database_manager.load_group(group_id)
-        cards = list(map(lambda c: Card(*udm_handler.get_udm().get_card(c[0]), c[1],
-                                        database_manager.get_group_names_for_card(c[0])),
+        cards = list(map(lambda c: UsedCard(*udm_handler.get_udm().get_card(c[0]), c[1],
+                                            database_manager.get_group_names_for_card(c[0])),
                          cards))  # cards = List[Tuple[int, List[Translation]]]
         cls.groups[group_id] = CardGroup(cards, name, parent_name)
 
@@ -157,8 +171,17 @@ class CardManager:
     #######
     # get methods
 
+    @staticmethod
+    def lookup(string) -> List[Card]:
+        """
+        Returns a list of Card-objects, that match the string.
+        :param string: the string to be looked up
+        :return:
+        """
+        pass
+
     @classmethod
-    def get_due_cards(cls, due_date: str = "today") -> List[Card]:
+    def get_due_cards(cls, due_date: str = "today") -> List[UsedCard]:
         """
         Loads self.CARD_PORTION many due cards from the database.
         :param due_date: a date in format %Y-%m-%d or 'today'
@@ -186,9 +209,9 @@ class CardManager:
         # load translations from database
         cards = []
         for card in due_cards[0]:
-            cards.append(Card(card[0], card[1], card[2],
-                              database_manager.get_card(card[0])[1], database_manager.get_group_names_for_card(card[0])
-                              ))
+            cards.append(UsedCard(card[0], card[1], card[2],
+                                  database_manager.get_card(card[0])[1], database_manager.get_group_names_for_card(card[0])
+                                  ))
         return cards
 
     @classmethod
@@ -215,7 +238,7 @@ class CardManager:
     # card manipulation methods
 
     @classmethod
-    def correct(cls, card: Card):
+    def correct(cls, card: UsedCard):
         """
         Modifies the card and saves it to the database.
         :param card: the card to be modified.
@@ -228,7 +251,7 @@ class CardManager:
         udm_handler.get_udm().update_card((card.card_id, card.shelf, card.due_date))
 
     @classmethod
-    def wrong(cls, card: Card):
+    def wrong(cls, card: UsedCard):
         """
         Modifies the cards and saves it to the database.
         :param card: the card to be modified.

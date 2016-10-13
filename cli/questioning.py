@@ -17,10 +17,10 @@
 
 """
 Provides methods for the 'question' cycle.
-Call question_all(<List[data.Card]>) to question the user over these vocabs.
+Call question_all(<List[data.UsedCard]>) to question the user over these vocabs.
 """
 
-from data.cardManager import CardManager, Card
+from data.cardManager import CardManager, UsedCard
 from data.userDatabaseManager import CardNotUsedError
 from language import German, Latin
 
@@ -50,7 +50,7 @@ def question_all_group(group_name: str):
     question_all(group.get_cards())
 
 
-def question_all(cards: Iterable[Card]):
+def question_all(cards: Iterable[UsedCard]):
     """
     Questions the User over the vocabulary cards.
     :param cards: vocabulary cards
@@ -107,7 +107,7 @@ def print_shelf_counts(counts):
     print("Sum: {} cards".format(sum(counts)))
 
 
-def question(card: Card) -> bool:
+def question(card: UsedCard) -> bool:
     """
     Question the User over card.
     :param card: the vocabulary card.

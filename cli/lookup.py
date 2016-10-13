@@ -19,7 +19,7 @@
 Provides methods for the 'lookup' command.
 """
 
-from data import database_manager
+from data.cardManager import CardManager
 from language import Latin
 
 
@@ -30,13 +30,13 @@ def lookup(string: str):
     """
 
     # retrieve cards form database
-    cards = database_manager.find_cards_with(string, Latin.name)
+    cards = CardManager.lookup(string)
     if len(cards) == 0:
         print("No cards found.")
 
     # print out cards
-    for card_id, translations in cards:
-        groups = sorted(database_manager.get_group_names_for_card(card_id))
-        print("[{}, {}]".format(card_id, ", ".join(groups)) if groups else "[{}]".format(card_id))
-        for translation in translations:
-            print("{} -> {}".format(translation[0], translation[2]))
+    for card in cards:
+        groups = sorted(list(card.get_groups()))
+        print("[{}, {}]".format(card.get_id(), ", ".join(groups)) if groups else "[{}]".format(card.get_id()))
+        for translation in card.get_translations():
+            print("{} -> {}".format(translation[0], translation[1]))
