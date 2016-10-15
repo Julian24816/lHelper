@@ -24,7 +24,7 @@ from cli.menu import choose_option, Command, MenuOptionsRegistry, MainloopExit, 
 
 from cli.lookup import lookup
 from cli.questioning import question_all_due, question_all_group
-from cli.show import show_group
+from cli.show import show_group, show_card
 from cli.use import use_group
 
 from data import database_manager, udm_handler
@@ -91,7 +91,7 @@ class Show(Command):
     """
     The 'show c' and 'show w' commands.
     """
-    usage = "show (c|w|<group_name>)"
+    usage = "show (c|w|<group_name>|<card_id>)"
     description = "show corresponding parts of LICENSE or all cards in card-group group_name"
 
     def __init__(self, group: str):
@@ -103,10 +103,17 @@ class Show(Command):
             print(self.get_warranty())
             return
 
-        if database_manager.group_name_exists(group):
-            show_group(group)
-        else:
-            print("group_name unknown")
+        try:
+            card_id = int(group)
+            if database_manager.card_exists(card_id):
+                show_card(card_id)
+            else:
+                print("Card {} does not exist.".format(card_id))
+        except ValueError:
+            if database_manager.group_name_exists(group):
+                show_group(group)
+            else:
+                print("group_name unknown")
 
     @staticmethod
     def get_warranty() -> str:

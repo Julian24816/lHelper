@@ -20,6 +20,7 @@ Provides methods for the 'show' command.
 """
 
 from data import database_manager
+from typing import Tuple, List
 
 
 def show_group(group_name: str):
@@ -34,6 +35,31 @@ def show_group(group_name: str):
         return
 
     for card_id, translations in database_manager.load_group(database_manager.get_group_id_for_name(group_name))[2]:
-        print("[{}]".format(card_id))
-        for translation in translations:
-            print("{} -> {}".format(translation[0], translation[2]))  # phrase1, phrase2
+        print_card(card_id, translations, database_manager.get_group_names_for_card(card_id))
+
+
+def show_card(card_id: str):
+    """
+    Loads a card from the database and prints it.
+    :param card_id: the cards id
+    """
+
+    # assert the card exists
+    if not database_manager.card_exists(card_id):
+        print("Card {} does not exist.".format(card_id))
+        return
+
+    _, translations = database_manager.get_card(card_id)
+    print_card(card_id, translations, database_manager.get_group_names_for_card(card_id))
+
+
+def print_card(card_id: str, translations: Tuple[str, str, str, str], group_names: List[str] = list()):
+    """
+    Print a card as loaded from database_manager
+    :param card_id: the cards id
+    :param translations: the cards translations
+    :param group_names: the groups the card is in
+    """
+    print("[{}]".format(card_id) if not group_names else "[{}, {}]".format(card_id, ", ".join(group_names)))
+    for translation in translations:
+        print("{} -> {}".format(translation[0], translation[2]))  # phrase1, phrase2
