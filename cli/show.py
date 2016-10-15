@@ -53,7 +53,7 @@ def show_card(card_id: int):
     print_card(card_id, translations, database_manager.get_group_names_for_card(card_id))
 
 
-def print_card(card_id: str, translations: Tuple[str, str, str, str], group_names: List[str] = list()):
+def print_card(card_id: int, translations: Tuple[str, str, str, str], group_names: List[str] = list()):
     """
     Print a card as loaded from database_manager
     :param card_id: the cards id
