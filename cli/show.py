@@ -38,7 +38,7 @@ def show_group(group_name: str):
         print_card(card_id, translations, database_manager.get_group_names_for_card(card_id))
 
 
-def show_card(card_id: str):
+def show_card(card_id: int):
     """
     Loads a card from the database and prints it.
     :param card_id: the cards id
