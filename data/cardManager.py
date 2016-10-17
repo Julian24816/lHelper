@@ -269,11 +269,11 @@ class CardManager:
         :param group_name: the groups name
         :return: the CardGroup
         """
-        name, lt = CardManager._parse_group_name(group_name)
+        name, lt = CardManager.parse_group_name(group_name)
         if name in ("s{}".format(i) for i in range(CardManager.MIN_SHELF, CardManager.MAX_SHELF + 1)):
             group = CardGroup(CardManager.get_cards_on_shelf(int(name[1:])), name)
         else:
-            group = cls.get_group(database_manager.get_group_id_for_name(group_name))
+            group = cls.get_group(database_manager.get_group_id_for_name(name))
 
         if lt is not None:
             return CardGroup(filter(lambda c: c.get_translations()[0][0].phrase < lt[1:],
@@ -286,7 +286,7 @@ class CardManager:
         :param group_description: the groups name + optional modifiers
         :return: the groups existence
         """
-        name, lt = CardManager._parse_group_name(group_description)
+        name, lt = CardManager.parse_group_name(group_description)
 
         # s1, s2, s3, s4, ...
         if name in ("s{}".format(i) for i in range(CardManager.MIN_SHELF, CardManager.MAX_SHELF + 1)) \
@@ -295,7 +295,7 @@ class CardManager:
         return False
 
     @staticmethod
-    def _parse_group_name(group_name: str) -> List[str]:
+    def parse_group_name(group_name: str) -> List[str]:
         """
         Splits a group_name into name and modifiers.
         :param group_name: the raw group names

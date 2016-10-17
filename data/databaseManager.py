@@ -365,7 +365,7 @@ class DatabaseManager(DatabaseOpenHelper):
         Loads a card from the database.
         :param card_id: the cards id
         :param cursor: the cursor to be used to access the database
-        :return: a list of str-4-Tuples representing the cards translations
+        :return: id, a list of str-4-Tuples representing the cards translations
         """
 
         # if no cursor was passed on, open the database and call the method recursively with a new cursor object
