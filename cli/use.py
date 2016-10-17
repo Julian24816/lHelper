@@ -38,7 +38,7 @@ def use_group(group_name: str):
 
     cards = database_manager.load_group(database_manager.get_group_id_for_name(name))[2]
     if lt is not None:
-        cards = list(filter(lambda c: c[1][0][0] < lt, cards))
+        cards = list(filter(lambda c: c[1][0][0] < lt[1:], cards))
 
     if len(cards) > 100 and not (
             input("Do you really want to add {} cards? [y] ".format(len(cards))).strip(" ").lower().endswith("y")):

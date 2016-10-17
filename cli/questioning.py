@@ -41,12 +41,12 @@ def question_all_group(group_name: str):
     Questions the user over all cards in card-group group_name.
     :param group_name: the groups name
     """
-    try:
-        group = CardManager.get_group_for_name(group_name)
-    except CardNotUsedError:
-        print("A card in {} is not used by the current user.\nUse the command 'use {}' first.".format(group_name,
-                                                                                                      group_name))
-        return
+#    try:
+    group = CardManager.get_group_for_name(group_name)
+#    except CardNotUsedError:
+#        print("A card in {} is not used by the current user.\nUse the command 'use {}' first.".format(group_name,
+#                                                                                                      group_name))
+#        return
     question_all(group.get_cards())
 
 
