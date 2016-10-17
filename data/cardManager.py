@@ -179,6 +179,8 @@ class CardManager:
         :param language: the language of the string
         :return: a list of cards.
         """
+        raise NotImplementedError("WIP")
+
         # get possible root forms for string
         rfs = phrase_classes[language].get_possible_root_forms_for(string)
 
