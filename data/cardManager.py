@@ -24,6 +24,7 @@ from data import database_manager, udm_handler
 from language import Phrase, phrase_classes
 from random import choice
 from time import localtime, strftime, time
+from re import match
 
 from typing import Iterable, List, Set, Tuple
 
@@ -32,6 +33,7 @@ class Card:
     """
     Holds a vocabulary Card.
     """
+
     def __init__(self, card_id: int, translations: List[Tuple[str, str, str, str]], groups: Iterable[str]):
         """
         Initialize the UsedCard.
@@ -71,6 +73,7 @@ class UsedCard(Card):
     """
     Holds a used vocabulary Card.
     """
+
     def __init__(self, card_id: int, shelf: int, due_date: str, translations: List[Tuple[str, str, str, str]],
                  groups: Iterable[str]):
         """
@@ -102,6 +105,7 @@ class CardGroup:
     """
     A group of cards.
     """
+
     def __init__(self, cards: Iterable[UsedCard], name: str, parent_name: str = None):
         """
         Initialize the Group.
@@ -197,7 +201,7 @@ class CardManager:
                 else:
                     cards.append(Card(card[0], card[1], database_manager.get_group_names_for_card(card[0])))
 
-        # todo implement checking whether each card really corresponds to the string
+                    # todo implement checking whether each card really corresponds to the string
 
     @classmethod
     def get_due_cards(cls, due_date: str = "today") -> List[UsedCard]:
@@ -215,9 +219,9 @@ class CardManager:
             else:
                 due_cards[1].append(card)
 
-        if len(due_cards[0]) < cls.CARD_PORTION < len(due_cards[0])+len(due_cards[1]) and len(due_cards[1]) > 0:
+        if len(due_cards[0]) < cls.CARD_PORTION < len(due_cards[0]) + len(due_cards[1]) and len(due_cards[1]) > 0:
             print("Selecting {} of {} cards.".format(max(cls.CARD_PORTION, len(due_cards[0])),
-                                                     len(due_cards[0])+len(due_cards[1])))
+                                                     len(due_cards[0]) + len(due_cards[1])))
 
         # limit card amount by using all cards in shelf 1 and 2 and using as much as possible random others
         while len(due_cards[0]) < cls.CARD_PORTION and len(due_cards[1]) > 0:
@@ -229,8 +233,22 @@ class CardManager:
         cards = []
         for card in due_cards[0]:
             cards.append(UsedCard(card[0], card[1], card[2],
-                                  database_manager.get_card(card[0])[1], database_manager.get_group_names_for_card(card[0])
-                                  ))
+                                  database_manager.get_card(card[0])[1],
+                                  database_manager.get_group_names_for_card(card[0])))
+        return cards
+
+    @staticmethod
+    def get_cards_on_shelf(shelf: int) -> List[UsedCard]:
+        """
+        Returns all Cards on the shelf
+        :param shelf: the shelf
+        :return: a list of UsedCards
+        """
+        cards = []
+        for card in udm_handler.get_udm().get_cards_on_shelf(shelf):
+            cards.append(UsedCard(card[0], card[1], card[2],
+                                  database_manager.get_card(card[0])[1],
+                                  database_manager.get_group_names_for_card(card[0])))
         return cards
 
     @classmethod
@@ -251,20 +269,42 @@ class CardManager:
         :param group_name: the groups name
         :return: the CardGroup
         """
+        name, lt = CardManager._parse_group_name(group_name)
+        if name in ("s{}".format(i) for i in range(CardManager.MIN_SHELF, CardManager.MAX_SHELF + 1)):
+            group = CardGroup(CardManager.get_cards_on_shelf(int(name[1:])), name)
+        else:
+            group = cls.get_group(database_manager.get_group_id_for_name(group_name))
 
-        # todo allow for group truncation (e.g. 'adeo<d') and special groups (e.g. s1)
-
-        return cls.get_group(database_manager.get_group_id_for_name(group_name))
+        if lt is not None:
+            return CardGroup(filter(lambda c: c.get_translations()[0][0].phrase < lt[1:],
+                                    group.get_cards()), group.name, group.parent_name)
 
     @staticmethod
-    def group_name_exists(group_name: str) -> bool:
+    def group_name_exists(group_description: str) -> bool:
         """
         Checks whether a group exists.
-        :param group_name: the groups name
+        :param group_description: the groups name + optional modifiers
         :return: the groups existence
         """
-        # todo allow for group truncation and special groups
-        raise NotImplementedError
+        name, lt = CardManager._parse_group_name(group_description)
+
+        # s1, s2, s3, s4, ...
+        if name in ("s{}".format(i) for i in range(CardManager.MIN_SHELF, CardManager.MAX_SHELF + 1)) \
+                or database_manager.group_name_exists(name):
+            return True
+        return False
+
+    @staticmethod
+    def _parse_group_name(group_name: str) -> List[str]:
+        """
+        Splits a group_name into name and modifiers.
+        :param group_name: the raw group names
+        :return: name, lt  # lt is None or a string starting with '<'
+        """
+        m = match("([\w-]+)(<\w+)?", group_name)
+        if m:
+            return m.groups()
+        return group_name, None
 
     @staticmethod
     def get_card(card_id: int) -> UsedCard:
@@ -287,7 +327,7 @@ class CardManager:
         """
         card.shelf = card.shelf + 1 if card.shelf < cls.MAX_SHELF else cls.MAX_SHELF
 
-        days = 2**card.shelf - 1
+        days = 2 ** card.shelf - 1
         card.due_date = strftime("%Y-%m-%d", localtime(time() + 86400 * days))  # in *days* days
 
         udm_handler.get_udm().update_card((card.card_id, card.shelf, card.due_date))

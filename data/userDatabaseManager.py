@@ -151,7 +151,7 @@ class UserDatabaseManager(DatabaseOpenHelper):
 
     def get_due_cards(self, due_date: str = "today", cursor: Cursor = None) -> List[Card]:
         """
-        Fetches the id of all due cards from the database.
+        Fetches all due cards from the database.
         :param due_date: a date in format '%Y-%m-%d' or 'today'
         :param cursor: the cursor to be used to access the database.
         :return: a list of 3-tuples representing the cards (id, shelf, due_date)
@@ -173,6 +173,28 @@ class UserDatabaseManager(DatabaseOpenHelper):
             return cursor.execute("SELECT " + ",".join((CARD_ID, USED_CARD_SHELF, USED_CARD_DUE_DATE))
                                   + " FROM " + TABLE_USED_CARD + " WHERE " + USED_CARD_DUE_DATE + "<=?;",
                                   (due_date,)).fetchall()
+
+    def get_cards_on_shelf(self, shelf:int, cursor: Cursor = None) -> List[Card]:
+        """
+        Fetches the all cards on a shelf from the database.
+        :param shelf: the shelf
+        :param cursor: the cursor to be used to access the database.
+        :return: a list of 3-tuples representing the cards (id, shelf, due_date)
+        """
+
+        # if no cursor was passed on, open the database and call the method recursively with a new cursor object
+        if cursor is None:
+            db = self.get_connection()
+            cur = db.cursor()
+            cards = self.get_cards_on_shelf(shelf, cur)
+            db.close()
+            return cards
+
+        # a cursor was passed on
+        else:
+            return cursor.execute("SELECT " + ",".join((CARD_ID, USED_CARD_SHELF, USED_CARD_DUE_DATE))
+                                  + " FROM " + TABLE_USED_CARD + " WHERE " + USED_CARD_SHELF + "=?;",
+                                  (shelf,)).fetchall()
 
     #######
     # update the entries in the database
