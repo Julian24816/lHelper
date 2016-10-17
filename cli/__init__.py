@@ -23,11 +23,12 @@ Start the mainloop by calling main.
 from cli.menu import choose_option, Command, MenuOptionsRegistry, MainloopExit, UnknownCommand
 
 from cli.lookup import lookup
-from cli.questioning import question_all_due, question_all_group
+from cli.questioning import question_all_due, question_all_group, question_card
 from cli.show import show_group, show_card
-from cli.use import use_group
+from cli.use import use_group, use_card
 
 from data import database_manager, udm_handler
+from data.cardManager import CardManager
 
 from re import match
 
@@ -41,9 +42,6 @@ class LookUp(Command):
     description = "looks up a string in the database"
 
     def __init__(self, *word: str):
-        if udm_handler.get_user() is None:
-            print("Choose user first. (user <username>)")
-            return
         if len(word) == 0:
             raise TypeError
         lookup(" ".join(word))
@@ -63,8 +61,8 @@ class Question(Command):
     """
     The 'question' command.
     """
-    usage = "question [due|<group_name>]"
-    description = "questions the user over all due cards or all cards in group_name"
+    usage = "question [due|<group_name>|<card_id>]"
+    description = "questions the user over all due cards or all cards in group_name or a single card"
 
     def __init__(self, group_name: str = "due"):
         if udm_handler.get_user() is None:
@@ -72,10 +70,19 @@ class Question(Command):
             return
         if group_name == "due":
             question_all_due()
-        elif database_manager.group_name_exists(group_name):
+        elif CardManager.group_name_exists(group_name):
             question_all_group(group_name)
         else:
-            print("group_name unknown.")
+            try:
+                card_id = int(group_name)
+            except ValueError:
+                print("group_name unknown.")
+                return
+
+            if not udm_handler.get_udm().card_is_used(card_id):
+                print("Card {} is not used.".format(card_id))
+            else:
+                question_card(card_id)
 
     @classmethod
     def get_help(cls):
@@ -152,7 +159,7 @@ class Show(Command):
         to_return = "{}\n{}\n\n".format(cls.usage_notice(), cls.description)
         to_return += "  c          - show copyright\n"
         to_return += "  w          - show warranty\n"
-        to_return += "  group_name - show all cards in card_group group_name"
+        to_return += "  group_name - show all cards in the CardGroup group_name"
         return to_return
 
 
@@ -161,14 +168,26 @@ class Use(Command):
     """
     The 'use' command
     """
-    usage = "use <group_name>"
+    usage = "use (<group_name>|<card_id>)"
     description = "put all cards in card-group group_name in shelf 1"
 
     def __init__(self, group_name: str):
         if udm_handler.get_user() is None:
             print("Choose user first. (user <username>)")
             return
-        use_group(group_name)
+        try:
+            card_id = int(group_name)
+            if not database_manager.card_exists(card_id):
+                print("Card {} does not exist.".format(card_id))
+            elif udm_handler.get_udm().card_is_used(card_id):
+                print("Card {} is already used.".format(card_id))
+            else:
+                use_card(card_id)
+        except ValueError:
+            if not CardManager.group_name_exists(group_name):
+                print("Group {} does not exist.".format(group_name))
+            else:
+                use_group(group_name)
 
 
 @MenuOptionsRegistry

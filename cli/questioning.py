@@ -76,8 +76,6 @@ def question_all(cards: Iterable[UsedCard]):
         # choose one of them
         card = choice(cards)
 
-        # print(card.get_id())
-
         # and question the user about it
         if question(card):
             print("Correct +1")
@@ -105,6 +103,29 @@ def print_shelf_counts(counts):
         if counts[i] != 0:
             print("Shelf {}: {} cards".format(i, counts[i]))
     print("Sum: {} cards".format(sum(counts)))
+
+
+def question_card(card_id):
+    """
+    Questions the user over a card
+    :param card_id: the cards id.
+    """
+    card = CardManager.get_card(card_id)
+    done = False
+    while not done:
+
+        # and question the user about it
+        if question(card):
+            print("Correct +1")
+            CardManager.correct(card)
+            done = True
+        else:
+            CardManager.wrong(card)
+
+        # print the cards new shelf and next questioning date
+        print('New shelf:', card.get_shelf())
+        print('Next questioning:', card.get_due_date())
+        print()
 
 
 def question(card: UsedCard) -> bool:

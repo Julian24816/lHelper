@@ -42,6 +42,18 @@ def use_group(group_name: str):
         return
 
     for card_id, _ in cards:
-        if not udm_handler.get_udm().card_is_used(card_id):
-            udm_handler.get_udm().add_card(card_id, CardManager.DEFAULT_SHELF, "today")
+        use_card(card_id, verbosity=1)
+
+
+def use_card(card_id: int, verbosity=2):
+    """
+    Adds a card to the used cards of the user.
+    :param card_id: the cards id
+    :param verbosity: 1 for 'card added' messages + 2 for 'card added' and 'card already used' messages
+    """
+    if not udm_handler.get_udm().card_is_used(card_id):
+        udm_handler.get_udm().add_card(card_id, CardManager.DEFAULT_SHELF, "today")
+        if verbosity>=1:
             print("Added card {} to shelf {}".format(card_id, CardManager.DEFAULT_SHELF))
+    elif verbosity >= 2:
+        print("Card {} is already used.".format(card_id))

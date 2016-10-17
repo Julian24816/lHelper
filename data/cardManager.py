@@ -240,12 +240,7 @@ class CardManager:
         """
         if group_id not in cls.groups:
             cls.load_card_group(group_id)
-
-        # todo allow for group truncation (e.g. 'adeo<d')
-
         return cls.groups[group_id]
-
-
 
     @classmethod
     def get_group_for_name(cls, group_name: str) -> CardGroup:
@@ -254,7 +249,30 @@ class CardManager:
         :param group_name: the groups name
         :return: the CardGroup
         """
+
+        # todo allow for group truncation (e.g. 'adeo<d') and special groups (e.g. s1)
+
         return cls.get_group(database_manager.get_group_id_for_name(group_name))
+
+    @staticmethod
+    def group_name_exists(group_name: str) -> bool:
+        """
+        Checks whether a group exists.
+        :param group_name: the groups name
+        :return: the groups existence
+        """
+        # todo allow for group truncation and special groups
+        raise NotImplementedError
+
+    @staticmethod
+    def get_card(card_id: int) -> UsedCard:
+        """
+        Loads a card from the database
+        :param card_id: the cards id
+        :return: a UsedCard
+        """
+        return UsedCard(*udm_handler.get_udm().get_card(card_id), database_manager.get_card(card_id)[1],
+                        database_manager.get_group_names_for_card(card_id))
 
     #######
     # card manipulation methods
