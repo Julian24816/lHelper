@@ -278,6 +278,7 @@ class CardManager:
         if lt is not None:
             return CardGroup(filter(lambda c: c.get_translations()[0][0].phrase < lt[1:],
                                     group.get_cards()), group.name, group.parent_name)
+        return group
 
     @staticmethod
     def group_name_exists(group_description: str) -> bool:
