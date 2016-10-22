@@ -24,7 +24,7 @@ from sys import path
 from os import chdir
 from os.path import dirname, abspath
 
-ENABLE_DATA_COMMANDS = True
+ENABLE_DATA_COMMANDS = False
 
 __version__ = "1.4.7"
 __author__ = "Julian Mueller"
