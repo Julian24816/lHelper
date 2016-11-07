@@ -129,8 +129,10 @@ class CardManager:
     Manages the loading and saving of vocabulary cards.
     """
     CARD_PORTION = 100
+
     MIN_SHELF = 0
     DEFAULT_SHELF = 1
+    MIN_AGAIN_SHELF = 3
     MAX_SHELF = 7
 
     groups = {}
@@ -330,6 +332,20 @@ class CardManager:
 
         days = 2 ** card.shelf - 1
         card.due_date = strftime("%Y-%m-%d", localtime(time() + 86400 * days))  # in *days* days
+
+        udm_handler.get_udm().update_card((card.card_id, card.shelf, card.due_date))
+
+    @classmethod
+    def again(cls, card: UsedCard):
+        """
+        Modifies the card and saves it to the database.
+        :param card: the card to be modified.
+        """
+        assert card.shelf >= cls.MIN_AGAIN_SHELF, \
+            "cards below shelf {} should be learned directly.".format(cls.MIN_AGAIN_SHELF)
+
+        card.shelf = cls.DEFAULT_SHELF + 1 if card.shelf >= cls.MIN_AGAIN_SHELF + 1 else cls.DEFAULT_SHELF
+        card.due_date = strftime('%Y-%m-%d')  # today
 
         udm_handler.get_udm().update_card((card.card_id, card.shelf, card.due_date))
 

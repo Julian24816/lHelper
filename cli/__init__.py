@@ -23,7 +23,7 @@ Start the mainloop by calling main.
 from cli.menu import choose_option, Command, MenuOptionsRegistry, MainloopExit, UnknownCommand
 
 from cli.lookup import lookup
-from cli.questioning import question_all_due, question_all_group, question_card
+from cli.questioning import question_all_due, question_all_group, question_single_card
 from cli.show import show_group, show_card
 from cli.use import use_group, use_card
 
@@ -82,7 +82,7 @@ class Question(Command):
             if not udm_handler.get_udm().card_is_used(card_id):
                 print("Card {} is not used.".format(card_id))
             else:
-                question_card(card_id)
+                question_single_card(card_id)
 
     @classmethod
     def get_help(cls):

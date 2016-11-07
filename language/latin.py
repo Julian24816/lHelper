@@ -59,6 +59,7 @@ class LatinPhrase(Phrase):
         :return: a list of strings
         """
         raise NotImplementedError
+        # todo implement get possible root forms
 
     def is_word(self):
         """

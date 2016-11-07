@@ -21,12 +21,13 @@ Call question_all(<List[data.UsedCard]>) to question the user over these vocabs.
 """
 
 from data.cardManager import CardManager, UsedCard
-from data.userDatabaseManager import CardNotUsedError
 from language import German, Latin
 
 from typing import Iterable
-from random import choice
+from random import shuffle, choice
 from re import match
+
+WRONG, AGAIN, CORRECT = range(3)
 
 
 def question_all_due():
@@ -64,29 +65,95 @@ def question_all(cards: Iterable[UsedCard]):
         counts[card.get_shelf()] += 1
     print_shelf_counts(counts)
 
-    # while the list contains a card
-    while len(cards) > 0:
-        print()
+    again = []
+    wrong = []
 
-        # choose one of them
-        card = choice(cards)
+    shuffle(cards)
 
-        # and question the user about it
-        if question(card):
-            print("Correct +1")
+    for card in cards:
+        print("\nCard {} out of {}.".format(cards.index(card)+1, len(cards)))
+
+        res = question(card)
+
+        if res == CORRECT:
             CardManager.correct(card)
+            print("Correct.")
 
-            # when answered correct remove the card from the list
-            cards.remove(card)
+        elif res == AGAIN:
+            CardManager.again(card)
+            again.append(card)
+            print("You get a second chance.")
+
         else:
             CardManager.wrong(card)
+            wrong.append(card)
+            print("Wrong.")
 
-        # print the cards new shelf and next questioning date
-        print('New shelf:', card.get_shelf())
-        print('Next questioning:', card.get_due_date())
-        print(len(cards), "cards left.")
+        print_card_info(card)
 
-    print("Done ^^")
+    if again:
+        print("\nSecond chance for {} cards:".format(len(again)))
+
+    for card in again:
+        print("\nCard {} out of {}.".format(again.index(card)+1, len(again)))
+
+        res = question(card)
+
+        if res == CORRECT:
+            CardManager.correct(card)
+            print("Correct.")
+
+        else:
+            CardManager.wrong(card)
+            wrong.append(card)
+            print("Wrong.")
+
+        print_card_info(card)
+
+    if wrong:
+        print("\nLearning of {} cards necessary.".format(len(wrong)))
+
+    while len(wrong):
+
+        # choose 7 cards:
+        to_learn = [choice(wrong) for i in range(min(len(wrong), 7))]
+        for card in to_learn:
+            wrong.remove(card)
+        print("\nChosen {} cards for learning sequence.".format(len(to_learn)))
+
+        consecutive_correct = 0
+        while consecutive_correct < 2:
+            shuffle(to_learn)
+            all_correct = True
+
+            for card in to_learn:
+                print("\nCard {} out of {}.".format(to_learn.index(card)+1, len(to_learn)))
+                if question(card) != CORRECT:
+                    all_correct = False
+
+            if all_correct:
+                consecutive_correct += 1
+            else:
+                consecutive_correct = 0
+
+            if consecutive_correct < 2:
+                print("\nand again :P")
+
+        for card in to_learn:
+            CardManager.correct(card)
+
+        print(len(wrong), "cards left for learning.")
+
+    print("Done.")
+
+
+def print_card_info(card: UsedCard):
+    """
+    Prints a cards shelf and due date.
+    :param card: the card to be printed
+    """
+    print('New shelf:', card.get_shelf())
+    print('Next questioning:', card.get_due_date())
 
 
 def print_shelf_counts(counts):
@@ -100,7 +167,7 @@ def print_shelf_counts(counts):
     print("Sum: {} cards".format(sum(counts)))
 
 
-def question_card(card_id):
+def question_single_card(card_id):
     """
     Questions the user over a card
     :param card_id: the cards id.
@@ -123,17 +190,17 @@ def question_card(card_id):
         print()
 
 
-def question(card: UsedCard) -> bool:
+def question(card: UsedCard) -> int:
     """
     Question the User over card.
     :param card: the vocabulary card.
-    :return: True if the User succeeded.
+    :return: CORRECT, AGAIN or WRONG
     """
 
     #######
     # retrieve data from card
 
-    synonyms = {}
+    synonyms = {}  # todo fix synonym recognition
     translations = {}
     for phrase1, phrase2 in card.get_translations():
 
@@ -194,18 +261,20 @@ def question(card: UsedCard) -> bool:
     #######
     # question user over the data
 
+    # print general card information
     groups = sorted(card.get_groups())
     print("[{}, {}, {}]".format(card.get_id(), card.get_shelf(), ", ".join(groups) if groups else "None"))
 
-    all_answers_correct = True
+    wrong_answers = 0
 
     last_word = None
 
+    # ask for translations for each phrase
     for phrase in translations:
 
         if phrase.is_word():
             # don't print the root_forms again if they were already asked for
-            if last_word and last_word.root_forms != phrase.root_forms or last_word is None:
+            if last_word is None or last_word.root_forms != phrase.root_forms:
 
                 # print synonyms
                 if phrase in synonyms:
@@ -215,8 +284,11 @@ def question(card: UsedCard) -> bool:
                 # if the phrase is a verb with at least 3 root_forms, ask the user for the root_forms
                 if phrase.is_verb() and match("\w+, \w+, .+", phrase.root_forms):
                     infinitive, *rest = (word.strip(" ") for word in phrase.root_forms.split(","))
-                    if input(infinitive + ", ").strip(" ") != ", ".join(rest):
-                        all_answers_correct = False
+
+                    forms = input(infinitive + ", ").strip(" ")
+                    if not fuzzy_match(forms, ", ".join(rest)):
+                        wrong_answers += 1
+                    if forms != ", ".join(rest):
                         print(", ".join([infinitive] + rest), "would be correct!")
 
                 # otherwise just print the root_forms
@@ -231,35 +303,79 @@ def question(card: UsedCard) -> bool:
         # phrase is no Word -> WordGroup
         else:
             # ask for translations:
-            res = input(phrase.phrase+": ")
+            res = input(phrase.phrase + ": ")
 
         answer = set(word.strip(" ") for word in res.split(","))
+        solution = translations[phrase]
 
         if "" in answer:
             answer.remove("")
 
-        # todo recognise typos automatically
+        # remove correct answers from both sets
+        answer, solution = answer.difference(solution), solution.difference(answer)
 
-        if answer != translations[phrase]:
-            all_answers_correct = False
-            translations_missing = False
-            if translations[phrase] - answer:  # missing translations
-                translations_missing = True
-                print("missing:", ", ".join(translations[phrase] - answer))
-            if answer - translations[phrase]:  # wrong translations
-                print("wrong:"+("  " if translations_missing else ""),
-                      ", ".join(answer - translations[phrase]))
+        # look for typos
+        for answer_phrase in answer.copy():
+            for correct_phrase in solution.copy():
+                if fuzzy_match(answer_phrase, correct_phrase):
+                    print("typo: {} -> {}".format(answer_phrase, correct_phrase))
+                    answer.remove(answer_phrase)
+                    solution.remove(correct_phrase)
+                    break
+
+        # check whether a missing solution has a comma
+        for correct_phrase in solution.copy():
+            if "," in correct_phrase and set(correct_phrase.split(",")).difference(answer) == 0:
+                solution.remove(correct_phrase)
+                for word in set(correct_phrase.split(",")):
+                    answer.remove(word.strip(" "))
+
+        if answer:  # wrong translations
+            print("wrong:  ", ", ".join(answer))
+
+        if solution:  # missing translations
+            print("missing:", ", ".join(solution))
+
+        wrong_answers += max(len(answer), len(solution))
 
     #######
     # return True/False according to answers
 
-    if all_answers_correct:
+    if wrong_answers == 0:
+        return CORRECT
+
+    elif wrong_answers == 1:
+        return AGAIN
+
+    # elif input("Your answers haven't all been correct. Forward anyway? [y] ").endswith("y"):
+    #     return True
+
+    return WRONG
+
+
+def fuzzy_match(string: str, correct: str):
+    """
+    Returns True if the string has <= 1 typo in respect to <correct>.
+    :param string: the string with a typo
+    :param correct: the correct string
+    :return: number of typos < 2
+    """
+    if string == correct:
         return True
 
-    # todo give more information on what the user did wrong
+    # character to much
+    for i in range(len(correct) + 1):
+        if match("{}.{}".format(correct[:i], correct[i:]), string):
+            return True
 
-    # allow for typos to be forwarded anyway
-    elif input("Your answers haven't all been correct. Forward anyway? [y] ").endswith("y"):
-        return True
+    # character missing or character wrong
+    for i in range(len(correct)):
+        if match("{}.?{}".format(correct[:i], correct[i + 1:]), string):
+            return True
+
+    # 2 characters switched
+    for i in range(len(correct) - 1):
+        if match("{}{}{}{}".format(correct[:i], correct[i + 1], correct[i], correct[i + 2:]), string):
+            return True
 
     return False
