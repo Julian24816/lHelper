@@ -79,7 +79,7 @@ def question_all(cards: Iterable[UsedCard]):
             CardManager.correct(card)
             print("Correct.")
 
-        elif res == AGAIN:
+        elif res == AGAIN and card.shelf >= CardManager.MIN_AGAIN_SHELF:
             CardManager.again(card)
             again.append(card)
             print("You get a second chance.")
