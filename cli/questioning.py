@@ -24,7 +24,7 @@ from data.cardManager import CardManager, UsedCard
 from language import German, Latin
 
 from typing import Iterable
-from random import shuffle, choice
+from random import shuffle, sample
 from re import match
 
 WRONG, AGAIN, CORRECT = range(3)
@@ -116,7 +116,7 @@ def question_all(cards: Iterable[UsedCard]):
     while len(wrong):
 
         # choose 7 cards:
-        to_learn = [choice(wrong) for i in range(min(len(wrong), 7))]
+        to_learn = sample(wrong, min(len(wrong), 7))
         for card in to_learn:
             wrong.remove(card)
         print("\nChosen {} cards for learning sequence.".format(len(to_learn)))
@@ -142,7 +142,7 @@ def question_all(cards: Iterable[UsedCard]):
         for card in to_learn:
             CardManager.correct(card)
 
-        print(len(wrong), "cards left for learning.")
+        print("\n{}cards left for learning.".format(len(wrong)))
 
     print("Done.")
 
@@ -308,6 +308,8 @@ def question(card: UsedCard) -> int:
         answer = set(word.strip(" ") for word in res.split(","))
         solution = translations[phrase]
 
+        # todo expand brackets
+
         if "" in answer:
             answer.remove("")
 
@@ -363,19 +365,28 @@ def fuzzy_match(string: str, correct: str):
     if string == correct:
         return True
 
+    def fix(string_to_fix: str):
+        """
+        replaces the brackets
+        :param string_to_fix: the string to be fixed
+        :return: the fixed string
+        """
+        return string_to_fix.replace("(", "[(]").replace(")", "[)]")
+
     # character to much
     for i in range(len(correct) + 1):
-        if match("{}.{}".format(correct[:i], correct[i:]), string):
+        if match("^{}.{}$".format(fix(correct[:i]), fix(correct[i:])), string):
             return True
 
     # character missing or character wrong
     for i in range(len(correct)):
-        if match("{}.?{}".format(correct[:i], correct[i + 1:]), string):
+        if match("^{}.?{}$".format(fix(correct[:i]), fix(correct[i + 1:])), string):
             return True
 
     # 2 characters switched
     for i in range(len(correct) - 1):
-        if match("{}{}{}{}".format(correct[:i], correct[i + 1], correct[i], correct[i + 2:]), string):
+        if match("^{}{}{}{}$".format(fix(correct[:i]), fix(correct[i + 1]),
+                                     fix(correct[i]), fix(correct[i + 2:])), string):
             return True
 
     return False
