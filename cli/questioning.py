@@ -142,7 +142,7 @@ def question_all(cards: Iterable[UsedCard]):
         for card in to_learn:
             CardManager.correct(card)
 
-        print("\n{}cards left for learning.".format(len(wrong)))
+        print("\n{} cards left for learning.".format(len(wrong)))
 
     print("Done.")
 
