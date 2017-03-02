@@ -346,11 +346,11 @@ def question(card: UsedCard) -> int:
     if wrong_answers == 0:
         return CORRECT
 
+    elif input("Your answers haven't all been correct. Forward anyway? [y] ").endswith("y"):
+        return CORRECT
+
     elif wrong_answers == 1:
         return AGAIN
-
-    # elif input("Your answers haven't all been correct. Forward anyway? [y] ").endswith("y"):
-    #     return True
 
     return WRONG
 
