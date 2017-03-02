@@ -20,6 +20,7 @@ Manages the parsing of german phrases.
 """
 
 from language.abc import Language, Phrase
+from typing import List
 
 German = Language("german")
 
@@ -39,3 +40,13 @@ class GermanPhrase(Phrase):
         :return: the Phrase
         """
         return GermanPhrase(phrase)
+
+    @staticmethod
+    def get_possible_root_forms_for(string: str) -> List[str]:
+        """
+        Returns all root forms that belong to words that could when bend result in the given string.
+        :param string: the string to find root forms for
+        :return: a list of strings
+        """
+        return string
+

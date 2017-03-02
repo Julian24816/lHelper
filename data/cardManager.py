@@ -21,10 +21,10 @@ Instantiate CardManager to get access to the functionality.
 """
 
 from data import database_manager, udm_handler
-from data.userDatabaseManager import CardNotUsedError
 from language import Phrase, phrase_classes
 from random import choice
 from time import localtime, strftime, time
+from re import match
 
 from typing import Iterable, List, Set, Tuple
 
@@ -33,19 +33,15 @@ class Card:
     """
     Holds a vocabulary Card.
     """
-    def __init__(self, card_id: int, shelf: int, due_date: str, translations: List[Tuple[str, str, str, str]],
-                 groups: Iterable[str]):
+
+    def __init__(self, card_id: int, translations: List[Tuple[str, str, str, str]], groups: Iterable[str]):
         """
-        Initialize the Card.
+        Initialize the UsedCard.
         :param card_id: the cards id in the database.
-        :param shelf: the shelf the cards sits on
-        :param due_date: the date the card is due
         :param translations: the translations on the card
         :param groups: the groups the card is in
         """
         self.card_id = card_id
-        self.shelf = shelf
-        self.due_date = due_date
 
         self.translations = []
         for phrase1, language1, phrase2, language2 in translations:
@@ -60,18 +56,6 @@ class Card:
         """
         return self.card_id
 
-    def get_shelf(self):
-        """
-        :return: the shelf the card is on
-        """
-        return self.shelf
-
-    def get_due_date(self):
-        """
-        :return: the cards due date
-        """
-        return self.due_date
-
     def get_translations(self) -> List[Tuple[Phrase, Phrase]]:
         """
         :return: the translations on the card
@@ -85,11 +69,44 @@ class Card:
         return self.groups
 
 
+class UsedCard(Card):
+    """
+    Holds a used vocabulary Card.
+    """
+
+    def __init__(self, card_id: int, shelf: int, due_date: str, translations: List[Tuple[str, str, str, str]],
+                 groups: Iterable[str]):
+        """
+        Initialize the UsedCard.
+        :param card_id: the cards id in the database.
+        :param shelf: the shelf the cards sits on
+        :param due_date: the date the card is due
+        :param translations: the translations on the card
+        :param groups: the groups the card is in
+        """
+        super(UsedCard, self).__init__(card_id, translations, groups)
+        self.shelf = shelf
+        self.due_date = due_date
+
+    def get_shelf(self):
+        """
+        :return: the shelf the card is on
+        """
+        return self.shelf
+
+    def get_due_date(self):
+        """
+        :return: the cards due date
+        """
+        return self.due_date
+
+
 class CardGroup:
     """
     A group of cards.
     """
-    def __init__(self, cards: Iterable[Card], name: str, parent_name: str = None):
+
+    def __init__(self, cards: Iterable[UsedCard], name: str, parent_name: str = None):
         """
         Initialize the Group.
         :param cards: the cards in the group
@@ -100,7 +117,7 @@ class CardGroup:
         self.name = name
         self.parent_name = parent_name
 
-    def get_cards(self) -> Set[Card]:
+    def get_cards(self) -> Set[UsedCard]:
         """
         :return: the cards in the group
         """
@@ -112,8 +129,10 @@ class CardManager:
     Manages the loading and saving of vocabulary cards.
     """
     CARD_PORTION = 100
+
     MIN_SHELF = 0
     DEFAULT_SHELF = 1
+    MIN_AGAIN_SHELF = 3
     MAX_SHELF = 7
 
     groups = {}
@@ -126,8 +145,8 @@ class CardManager:
         :return: the card group
         """
         name, parent_name, cards = database_manager.load_group(group_id)
-        cards = list(map(lambda c: Card(*udm_handler.get_udm().get_card(c[0]), c[1],
-                                        database_manager.get_group_names_for_card(c[0])),
+        cards = list(map(lambda c: UsedCard(*udm_handler.get_udm().get_card(c[0]), c[1],
+                                            database_manager.get_group_names_for_card(c[0])),
                          cards))  # cards = List[Tuple[int, List[Translation]]]
         cls.groups[group_id] = CardGroup(cards, name, parent_name)
 
@@ -159,7 +178,35 @@ class CardManager:
     # get methods
 
     @classmethod
-    def get_due_cards(cls, due_date: str = "today") -> List[Card]:
+    def lookup(cls, string, language) -> List[Card]:
+        """
+        Returns a list of Card-objects, that match the string.
+        :param string: the string to be looked up
+        :param language: the language of the string
+        :return: a list of cards.
+        """
+        raise NotImplementedError("WIP")
+
+        # get possible root forms for string
+        rfs = phrase_classes[language].get_possible_root_forms_for(string)
+
+        # load corresponding cards
+        cards = []
+
+        for rf in rfs:
+            matching_cards = [c[0] for c in database_manager.find_cards_with(rf, language)]
+
+            for card in matching_cards:
+                if udm_handler.get_udm().card_is_used(card[0]):
+                    cards.append(UsedCard(*udm_handler.get_udm().get_card(card[0]), card[1],
+                                          database_manager.get_group_names_for_card(card[0])))
+                else:
+                    cards.append(Card(card[0], card[1], database_manager.get_group_names_for_card(card[0])))
+
+                    # todo implement checking whether each card really corresponds to the string
+
+    @classmethod
+    def get_due_cards(cls, due_date: str = "today") -> List[UsedCard]:
         """
         Loads self.CARD_PORTION many due cards from the database.
         :param due_date: a date in format %Y-%m-%d or 'today'
@@ -174,9 +221,9 @@ class CardManager:
             else:
                 due_cards[1].append(card)
 
-        if len(due_cards[0]) < cls.CARD_PORTION < len(due_cards[0])+len(due_cards[1]) and len(due_cards[1]) > 0:
+        if len(due_cards[0]) < cls.CARD_PORTION < len(due_cards[0]) + len(due_cards[1]) and len(due_cards[1]) > 0:
             print("Selecting {} of {} cards.".format(max(cls.CARD_PORTION, len(due_cards[0])),
-                                                     len(due_cards[0])+len(due_cards[1])))
+                                                     len(due_cards[0]) + len(due_cards[1])))
 
         # limit card amount by using all cards in shelf 1 and 2 and using as much as possible random others
         while len(due_cards[0]) < cls.CARD_PORTION and len(due_cards[1]) > 0:
@@ -187,9 +234,23 @@ class CardManager:
         # load translations from database
         cards = []
         for card in due_cards[0]:
-            cards.append(Card(card[0], card[1], card[2],
-                              database_manager.get_card(card[0])[1], database_manager.get_group_names_for_card(card[0])
-                              ))
+            cards.append(UsedCard(card[0], card[1], card[2],
+                                  database_manager.get_card(card[0])[1],
+                                  database_manager.get_group_names_for_card(card[0])))
+        return cards
+
+    @staticmethod
+    def get_cards_on_shelf(shelf: int) -> List[UsedCard]:
+        """
+        Returns all Cards on the shelf
+        :param shelf: the shelf
+        :return: a list of UsedCards
+        """
+        cards = []
+        for card in udm_handler.get_udm().get_cards_on_shelf(shelf):
+            cards.append(UsedCard(card[0], card[1], card[2],
+                                  database_manager.get_card(card[0])[1],
+                                  database_manager.get_group_names_for_card(card[0])))
         return cards
 
     @classmethod
@@ -210,26 +271,86 @@ class CardManager:
         :param group_name: the groups name
         :return: the CardGroup
         """
-        return cls.get_group(database_manager.get_group_id_for_name(group_name))
+        name, lt = CardManager.parse_group_name(group_name)
+        if name in ("s{}".format(i) for i in range(CardManager.MIN_SHELF, CardManager.MAX_SHELF + 1)):
+            group = CardGroup(CardManager.get_cards_on_shelf(int(name[1:])), name)
+        else:
+            group = cls.get_group(database_manager.get_group_id_for_name(name))
+
+        if lt is not None:
+            return CardGroup(filter(lambda c: c.get_translations()[0][0].phrase < lt[1:],
+                                    group.get_cards()), group.name, group.parent_name)
+        return group
+
+    @staticmethod
+    def group_name_exists(group_description: str) -> bool:
+        """
+        Checks whether a group exists.
+        :param group_description: the groups name + optional modifiers
+        :return: the groups existence
+        """
+        name, lt = CardManager.parse_group_name(group_description)
+
+        # s1, s2, s3, s4, ...
+        if name in ("s{}".format(i) for i in range(CardManager.MIN_SHELF, CardManager.MAX_SHELF + 1)) \
+                or database_manager.group_name_exists(name):
+            return True
+        return False
+
+    @staticmethod
+    def parse_group_name(group_name: str) -> List[str]:
+        """
+        Splits a group_name into name and modifiers.
+        :param group_name: the raw group names
+        :return: name, lt  # lt is None or a string starting with '<'
+        """
+        m = match("([\w-]+)(<\w+)?", group_name)
+        if m:
+            return m.groups()
+        return group_name, None
+
+    @staticmethod
+    def get_card(card_id: int) -> UsedCard:
+        """
+        Loads a card from the database
+        :param card_id: the cards id
+        :return: a UsedCard
+        """
+        return UsedCard(*udm_handler.get_udm().get_card(card_id), database_manager.get_card(card_id)[1],
+                        database_manager.get_group_names_for_card(card_id))
 
     #######
     # card manipulation methods
 
     @classmethod
-    def correct(cls, card: Card):
+    def correct(cls, card: UsedCard):
         """
         Modifies the card and saves it to the database.
         :param card: the card to be modified.
         """
         card.shelf = card.shelf + 1 if card.shelf < cls.MAX_SHELF else cls.MAX_SHELF
 
-        days = 2**card.shelf - 1
+        days = 2 ** card.shelf - 1
         card.due_date = strftime("%Y-%m-%d", localtime(time() + 86400 * days))  # in *days* days
 
         udm_handler.get_udm().update_card((card.card_id, card.shelf, card.due_date))
 
     @classmethod
-    def wrong(cls, card: Card):
+    def again(cls, card: UsedCard):
+        """
+        Modifies the card and saves it to the database.
+        :param card: the card to be modified.
+        """
+        assert card.shelf >= cls.MIN_AGAIN_SHELF, \
+            "cards below shelf {} should be learned directly.".format(cls.MIN_AGAIN_SHELF)
+
+        card.shelf = cls.DEFAULT_SHELF + 1 if card.shelf >= cls.MIN_AGAIN_SHELF + 1 else cls.DEFAULT_SHELF
+        card.due_date = strftime('%Y-%m-%d')  # today
+
+        udm_handler.get_udm().update_card((card.card_id, card.shelf, card.due_date))
+
+    @classmethod
+    def wrong(cls, card: UsedCard):
         """
         Modifies the cards and saves it to the database.
         :param card: the card to be modified.

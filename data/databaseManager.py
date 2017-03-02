@@ -365,7 +365,7 @@ class DatabaseManager(DatabaseOpenHelper):
         Loads a card from the database.
         :param card_id: the cards id
         :param cursor: the cursor to be used to access the database
-        :return: a list of str-4-Tuples representing the cards translations
+        :return: id, a list of str-4-Tuples representing the cards translations
         """
 
         # if no cursor was passed on, open the database and call the method recursively with a new cursor object
@@ -570,14 +570,12 @@ class DatabaseManager(DatabaseOpenHelper):
 
     def update_card(self, card_id: int,
                     added_translations: List[Translation],
-                    edited_translations: Dict[Translation, Translation],
                     removed_translations: List[Translation],
                     cursor: Cursor = None):
         """
         Updates a card in the database.
         :param card_id: the cards_id
         :param added_translations: the translations that were added to the card
-        :param edited_translations: the translations that were edited as a before:after pair
         :param removed_translations: the translation that were removed from the card
         :param cursor: the cursor to be used to access the database
         """
@@ -585,7 +583,7 @@ class DatabaseManager(DatabaseOpenHelper):
         if cursor is None:
             db = self.get_connection()
             cur = db.cursor()
-            self.update_card(card_id, added_translations, edited_translations, removed_translations, cur)
+            self.update_card(card_id, added_translations, removed_translations, cur)
             db.commit()
             db.close()
 
@@ -594,18 +592,15 @@ class DatabaseManager(DatabaseOpenHelper):
             if not self.card_exists(card_id):
                 raise ValueError("Card {} does not exist.".format(card_id))
 
-            for translation in edited_translations:
-                self.edit_translation(translation, edited_translations[translation], cursor)
+            for translation in removed_translations:
+                t_id = self.remove_translation(translation, cursor)
+                cursor.execute("DELETE FROM " + TABLE_CARD + " WHERE " + CARD_ID + "=? AND " + TRANSLATION_ID + "=?",
+                               (card_id, t_id))
 
             for translation in added_translations:
                 t_id = self.add_translation(translation[0], translation[1], translation[2], translation[3], cursor)
                 cursor.execute("INSERT INTO " + TABLE_CARD + " (" + ",".join((CARD_ID, TRANSLATION_ID))
                                + ") VALUES (?,?);", (card_id, t_id))
-
-            for translation in removed_translations:
-                t_id = self.remove_translation(translation, cursor)
-                cursor.execute("DELETE FROM " + TABLE_CARD + " WHERE " + CARD_ID + "=? AND " + TRANSLATION_ID + "=?",
-                               (card_id, t_id))
 
             self.remove_obsolete_phrases(cursor)
 

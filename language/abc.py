@@ -19,6 +19,8 @@
 Provides abstract base classes for all languages.
 """
 
+from typing import List
+
 
 class Language:
     """
@@ -62,3 +64,12 @@ class Phrase:
 
     def __hash__(self):
         return hash(self.phrase)
+
+    @staticmethod
+    def get_possible_root_forms_for(string: str) -> List[str]:
+        """
+        Returns all root forms that belong to words that could when bend result in the given string.
+        :param string: the string to find root forms for
+        :return: a list of strings
+        """
+        raise NotImplementedError

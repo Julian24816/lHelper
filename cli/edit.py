@@ -53,7 +53,6 @@ def edit_card(card_id: int):
     # input new data
     print("edit:")
     added_translations = []
-    edited_translations = {}
     removed_translations = []
     untouched_translations = []
 
@@ -87,7 +86,8 @@ def edit_card(card_id: int):
 
         if i < len(translations):
             if (phrase1, language1, phrase2, language2) != translations[i]:  # translation was edited
-                edited_translations[translations[i]] = (phrase1, language1, phrase2, language2)
+                removed_translations.append(translations[i])
+                added_translations.append((phrase1, language1, phrase2, language2))
             else:
                 untouched_translations.append(translations[i])
             i += 1
@@ -98,13 +98,11 @@ def edit_card(card_id: int):
     print("new:")
     if untouched_translations:
         print(*untouched_translations, sep="\n")
-    if edited_translations:
-        print(*edited_translations.values(), sep="\n")
     if added_translations:
         print(*added_translations, sep="\n")
 
     if input("Save card? [y] ").strip(" ").lower().endswith("y"):
-        database_manager.update_card(card_id, added_translations, edited_translations, removed_translations)
+        database_manager.update_card(card_id, added_translations, removed_translations)
         print("Card saved.")
 
     # current_translation = next_translation()
